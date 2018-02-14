@@ -35,14 +35,34 @@ data_transforms = {
 }
 
 # Still need to figure this out: how to do labeling?
-data_dir = 'hymenoptera_data'
-image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
-                                          data_transforms[x])
-                  for x in ['train', 'val']}
-dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=4,
-                                             shuffle=True, num_workers=4)
-              for x in ['train', 'val']}
-dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
+# data_dir = 'hymenoptera_data'
+# image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
+#                                           data_transforms[x])
+#                   for x in ['train', 'val']}
+# dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=4,
+#                                              shuffle=True, num_workers=4)
+#               for x in ['train', 'val']}
+# dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
+
+
+BATCH_SIZE = 11
+normalize = transforms.Normalize([0.485, 0.456, 0.406],
+                                     [0.229, 0.224, 0.225])
+
+test_dataset = ChestXrayDataSet(data_dir=DATA_DIR,
+                                    image_list_file=TEST_IMAGE_LIST,
+                                    transform=transforms.Compose([
+                                        transforms.Resize(256),
+                                        transforms.TenCrop(224),
+                                        transforms.Lambda
+                                        (lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
+                                        transforms.Lambda
+                                        (lambda crops: torch.stack([normalize(crop) for crop in crops]))
+                                    ]))
+test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE,
+                         shuffle=False, num_workers=8, pin_memory=True)
+
+
 class_names = image_datasets['train'].classes
 
 use_gpu = torch.cuda.is_available()
