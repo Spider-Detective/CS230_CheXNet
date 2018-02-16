@@ -48,7 +48,7 @@ class ChestXrayDataSet(Dataset):
         label = self.labels[index]
         if self.transform is not None:
             image = self.transform(image)
-        return image, torch.FloatTensor(label)
+        return image, torch.LongTensor(label)
 
     def __len__(self):
         return len(self.image_names)

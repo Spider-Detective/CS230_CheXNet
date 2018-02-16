@@ -6,12 +6,16 @@ The main CheXNet model implementation.
 
 
 import os
+import time
+import copy
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.backends.cudnn as cudnn
 import torchvision
+import torch.optim as optim
 import torchvision.transforms as transforms
+from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from read_data import ChestXrayDataSet
 from sklearn.metrics import roc_auc_score
@@ -22,100 +26,22 @@ N_CLASSES = 14
 CLASS_NAMES = [ 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass', 'Nodule', 'Pneumonia',
                 'Pneumothorax', 'Consolidation', 'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
 DATA_DIR = './ChestX-ray14/images'
-TEST_IMAGE_LIST = './ChestX-ray14/labels/try1.txt'
-BATCH_SIZE = 17
+TRAIN_IMAGE_LIST = './ChestX-ray14/labels/try1.txt'
+BATCH_SIZE = 1
+use_gpu = torch.cuda.is_available()
 
 
-def main():
+normalize = transforms.Normalize([0.485, 0.456, 0.406],
+                                 [0.229, 0.224, 0.225])
 
-    # cudnn.benchmark = True
-
-    # initialize and load the model
-    model = DenseNet121(N_CLASSES)
-    model = torch.nn.DataParallel(model)
-
-    # if os.path.isfile(CKPT_PATH):
-    #     print("=> loading checkpoint")
-    #     checkpoint = torch.load(CKPT_PATH)
-    #     model.load_state_dict(checkpoint['state_dict'])
-    #     print("=> loaded checkpoint")
-    # else:
-    #     print("=> no checkpoint found")
-
-    normalize = transforms.Normalize([0.485, 0.456, 0.406],
-                                     [0.229, 0.224, 0.225])
-
-    test_dataset = ChestXrayDataSet(data_dir=DATA_DIR,
-                                    image_list_file=TEST_IMAGE_LIST,
-                                    transform=transforms.Compose([
-                                        transforms.Resize(256),
-                                        transforms.TenCrop(224),
-                                        transforms.Lambda
-                                        (lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
-                                        transforms.Lambda
-                                        (lambda crops: torch.stack([normalize(crop) for crop in crops]))
-                                    ]))
-    test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE,
-                             shuffle=False, num_workers=8, pin_memory=False)
-
-    # initialize the ground truth and output tensor
-    gt = torch.FloatTensor()
-    gt = gt
-    pred = torch.FloatTensor()
-    pred = pred
-
-    # switch to evaluate mode
-    model.eval()
-
-    for i, (inp, target) in enumerate(test_loader):
-        target = target
-        gt = torch.cat((gt, target), 0)
-        bs, n_crops, c, h, w = inp.size()
-        input_var = torch.autograd.Variable(inp.view(-1, c, h, w), volatile=True)
-        output = model(input_var)
-        output_mean = output.view(bs, n_crops, -1).mean(1)
-        pred = torch.cat((pred, output_mean.data), 0)
-
-
-    computeError(gt, pred)  
-    print('print error done')
-    # AUROCs = compute_AUCs(gt, pred)
-    # AUROC_avg = np.array(AUROCs).mean()
-    # print('The average AUROC is {AUROC_avg:.3f}'.format(AUROC_avg=AUROC_avg))
-    # for i in range(N_CLASSES):
-    #     print('The AUROC of {} is {}'.format(CLASS_NAMES[i], AUROCs[i]))
-
-
-# def compute_AUCs(gt, pred):
-#     """Computes Area Under the Curve (AUC) from prediction scores.
-
-#     Args:
-#         gt: Pytorch tensor on GPU, shape = [n_samples, n_classes]
-#           true binary labels.
-#         pred: Pytorch tensor on GPU, shape = [n_samples, n_classes]
-#           can either be probability estimates of the positive class,
-#           confidence values, or binary decisions.
-
-#     Returns:
-#         List of AUROCs of all classes.
-#     # """
-#     AUROCs = []
-#     gt_np = gt.numpy()
-#     pred_np = pred.numpy()
-#     for i in range(N_CLASSES):
-#         AUROCs.append(roc_auc_score(gt_np[:, i], pred_np[:, i]))
-#     return AUROCs
-
-def  computeError(gt, pred):
-    gt_np = gt.numpy()
-    pred_np = pred.numpy()
-    error = gt_np - pred_np
-    print(gt_np)
-    print(pred_np)
-    print('error print out')
-    print(error)
-    print(np.linalg.norm(error))
-    
+train_dataset = ChestXrayDataSet(data_dir=DATA_DIR,
+                                image_list_file=TRAIN_IMAGE_LIST,
+                                transform=transforms.Compose([
+                                    transforms.Resize(224),
+                                    transforms.ToTensor(),
+                                ]))
+train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE,
+                         shuffle=False, num_workers=8, pin_memory=False)
 
 class DenseNet121(nn.Module):
     """Model modified.
@@ -135,8 +61,110 @@ class DenseNet121(nn.Module):
 
     def forward(self, x):
         x = self.densenet121(x)
-        return x
+        return x 
+
+def loss_fn(outputs, labels):
+    """
+    Compute the cross entropy loss given outputs and labels.
+
+    Args:
+        outputs: (Variable) dimension batch_size x 6 - output of the model
+        labels: (Variable) dimension batch_size, where each element is a value in [0, 1, 2, 3, 4, 5]
+
+    Returns:
+        loss (Variable): cross entropy loss for all images in the batch
+
+    Note: you may use a standard loss function from http://pytorch.org/docs/master/nn.html#loss-functions. This example
+          demonstrates how you can easily define a custom loss function.
+    """
+    num_examples = outputs.size()[0]
+    return -torch.sum(outputs[range(num_examples), labels])/num_examples
 
 
-if __name__ == '__main__':
-    main()
+# a general model definition, scheduler: learning rate decay    
+def train_model(model, loss_fn, num_epochs=25):
+    since = time.time()
+
+    best_model_wts = copy.deepcopy(model.state_dict())
+    best_acc = 0.0
+
+    #scheduler.step()
+    model.train(True)  # Set model to training mode
+
+    for epoch in range(num_epochs):
+        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+        print('-' * 10)
+
+        running_loss = 0.0
+        running_corrects = 0
+        print(train_loader)
+        
+        # Iterate over data.
+        for data in train_loader:
+            # get the inputs
+
+            inputs, labels = data
+
+            # wrap them in Variable
+            if use_gpu:
+                inputs = Variable(inputs.cuda())
+                labels = Variable(labels.cuda())
+            else:
+                inputs, labels = Variable(inputs), Variable(labels)
+
+            # zero the parameter gradients
+            #optimizer.zero_grad()
+            # forward
+            outputs = model(inputs)
+            _, preds = torch.max(outputs.data, 1)
+            print(labels)
+            loss = loss_fn(outputs, labels)
+
+            # backward + optimize only if in training phase
+            loss.backward()
+            #optimizer.step()
+
+            # statistics
+            running_loss += loss.data[0] * inputs.size(0)
+            running_corrects += torch.sum(preds == labels.data)
+
+        epoch_loss = running_loss / dataset_sizes[phase]
+        epoch_acc = running_corrects / dataset_sizes[phase]
+
+        print('{} Loss: {:.4f} Acc: {:.4f}'.format(
+            phase, epoch_loss, epoch_acc))
+
+        # deep copy the model
+        if phase == 'val' and epoch_acc > best_acc:
+            best_acc = epoch_acc
+            best_model_wts = copy.deepcopy(model.state_dict())
+
+        print()
+
+    time_elapsed = time.time() - since
+    print('Training complete in {:.0f}m {:.0f}s'.format(
+        time_elapsed // 60, time_elapsed % 60))
+    print('Best val Acc: {:4f}'.format(best_acc))
+
+    # load best model weights
+    model.load_state_dict(best_model_wts)
+    return model   
+
+
+# initialize and load the model
+model = DenseNet121(N_CLASSES)
+#model = torch.nn.DataParallel(model)
+
+criterion = nn.CrossEntropyLoss()
+
+# Parameters of newly constructed modules have requires_grad=True by default
+#num_ftrs = model_conv.fc.in_features
+#model_conv.fc = nn.Linear(num_ftrs, 2)
+
+#optimizer_conv = optim.SGD(model.classifier.parameters(), lr=0.001, momentum=0.9)
+
+# Decay LR by a factor of 0.1 every 7 epochs
+#exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
+
+# Train the model
+model_conv = train_model(model, criterion, num_epochs=25)
