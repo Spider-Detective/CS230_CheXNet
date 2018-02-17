@@ -107,7 +107,8 @@ def train_model(model, optimizer, loss_fn, num_epochs=5):
 
         running_loss = 0.0
         running_corrects = 0
-        
+        running_accuracy = 0.0
+
         with tqdm(total=len(train_loader)) as t:
             # Iterate over data.
             for data in train_loader:
@@ -139,7 +140,14 @@ def train_model(model, optimizer, loss_fn, num_epochs=5):
                 # cutoff by 0.5
                 preds = outputs >= 0.5
                 preds = preds.type(torch.FloatTensor)
-            
+
+                # extract data from torch Variable, move to cpu, convert to
+                # numpy
+                preds_np = preds.data.cpu().numpy()
+                labels_np = labels.data.cpu().numpy()
+                running_accuracy += np.sum(preds_np == labels_np)/float(labels_np.size)
+
+
                 running_loss += loss.data[0] #* inputs.size(0)
 
                 compare = torch.eq(preds, labels)
@@ -150,9 +158,13 @@ def train_model(model, optimizer, loss_fn, num_epochs=5):
                 t.update()
 
         running_corrects = running_corrects.float().data[0]
-       
+
+        # Calculate the epoch loss and epoch metrics(accuracy)
         epoch_loss = running_loss / len(train_dataset)
-        epoch_acc = running_corrects / len(train_dataset)
+        #epoch_acc = running_corrects / len(train_dataset)
+        epoch_acc = running_accuracy / len(train_dataset)
+        if epoch_acc > best_acc:
+            best_acc = epoch_acc
 
         print('{} Loss: {:.4f} Acc: {:.4f}'.format(
             'train', epoch_loss, epoch_acc))
