@@ -8,7 +8,11 @@ The main CheXNet model implementation.
 import os
 import time
 import copy
+import logging
+
 import numpy as np
+from tqdm import tqdm
+
 import torch
 import torch.nn as nn
 import torch.backends.cudnn as cudnn
@@ -17,6 +21,7 @@ import torch.optim as optim
 import torchvision.transforms as transforms
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
+
 from read_data import ChestXrayDataSet
 from sklearn.metrics import roc_auc_score
 
@@ -27,12 +32,15 @@ CLASS_NAMES = [ 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass
                 'Pneumothorax', 'Consolidation', 'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
 DATA_DIR = './ChestX-ray14/images'
 TRAIN_IMAGE_LIST = './ChestX-ray14/labels/try1.txt'
-BATCH_SIZE = 17
+BATCH_SIZE = 4
 use_gpu = torch.cuda.is_available()
 
 
 normalize = transforms.Normalize([0.485, 0.456, 0.406],
                                  [0.229, 0.224, 0.225])
+
+# Create the input data pipeline
+logging.info("Loading the datasets...")
 
 train_dataset = ChestXrayDataSet(data_dir=DATA_DIR,
                                 image_list_file=TRAIN_IMAGE_LIST,
@@ -42,6 +50,8 @@ train_dataset = ChestXrayDataSet(data_dir=DATA_DIR,
                                 ]))
 train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE,
                          shuffle=False, num_workers=8, pin_memory=False)
+
+
 
 class DenseNet121(nn.Module):
     """Model modified.
@@ -98,51 +108,54 @@ def train_model(model, optimizer, loss_fn, num_epochs=5):
         running_loss = 0.0
         running_corrects = 0
         
-        # Iterate over data.
-        for data in train_loader:
-            # get the inputs
+        with tqdm(total=len(train_loader)) as t:
+            # Iterate over data.
+            for data in train_loader:
+                # get the inputs
 
-            inputs, labels = data
+                inputs, labels = data
 
-            # wrap them in Variable
-            if use_gpu:
-                inputs = Variable(inputs.cuda())
-                labels = Variable(labels.cuda())
-            else:
-                inputs, labels = Variable(inputs), Variable(labels)
+                # wrap them in Variable
+                if use_gpu:
+                    inputs = Variable(inputs.cuda())
+                    labels = Variable(labels.cuda())
+                else:
+                    inputs, labels = Variable(inputs), Variable(labels)
 
-            # zero the parameter gradients
-            optimizer.zero_grad()
-            # forward
-            outputs = model(inputs)
+                # zero the parameter gradients
+                optimizer.zero_grad()
+
+                # forward
+                outputs = model(inputs)
+                
+                loss = loss_fn(outputs, labels)
+
+                # backward + optimize 
+                loss.backward()
+
+                # performs updates using calculated gradients
+                optimizer.step()
+
+                # cutoff by 0.5
+                preds = outputs >= 0.5
+                preds = preds.type(torch.FloatTensor)
             
-            loss = loss_fn(outputs, labels)
+                running_loss += loss.data[0] #* inputs.size(0)
 
-            # backward + optimize 
-            loss.backward()
-            # performs updates using calculated gradients
-            optimizer.step()
+                compare = torch.eq(preds, labels)
+                compare = compare.type(torch.FloatTensor)
+                running_corrects += torch.sum(compare) == N_CLASSES
 
-            # statistics
-            # cutoff by 0.5
-            preds = outputs > 0.5
-            preds = preds.type(torch.FloatTensor)
-        
-            running_loss += loss.data[0] * inputs.size(0)
-
-            compare = torch.eq(preds, labels)
-            compare = compare.type(torch.FloatTensor)
-            running_corrects += torch.sum(compare) == N_CLASSES
+                t.set_postfix(loss='{:05.3f}'.format(running_loss))
+                t.update()
 
         running_corrects = running_corrects.float().data[0]
-        #print(len(train_dataset))
+       
         epoch_loss = running_loss / len(train_dataset)
         epoch_acc = running_corrects / len(train_dataset)
 
         print('{} Loss: {:.4f} Acc: {:.4f}'.format(
             'train', epoch_loss, epoch_acc))
-
-        print()
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
