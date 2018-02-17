@@ -25,7 +25,6 @@ from read_data import ChestXrayDataSet
 from sklearn.metrics import roc_auc_score
 
 
-# CKPT_PATH = 'model.pth.tar'
 N_CLASSES = 14
 CLASS_NAMES = [ 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass', 'Nodule', 'Pneumonia',
                 'Pneumothorax', 'Consolidation', 'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
@@ -160,15 +159,10 @@ def train_model(model, optimizer, loss_fn, num_epochs=5):
 
         # Calculate the epoch loss and epoch metrics(accuracy)
         epoch_loss = running_loss / len(train_dataset)
-<<<<<<< HEAD
-        epoch_acc = running_corrects / len(train_dataset)
-        
-=======
-        #epoch_acc = running_corrects / len(train_dataset)
+
         epoch_acc = running_accuracy / len(train_dataset)
         if epoch_acc > best_acc:
             best_acc = epoch_acc
->>>>>>> 6795672cf91a942841148ed11919c327f7330f45
 
         print('{} Loss: {:.4f} Acc: {:.4f}'.format(
             'train', epoch_loss, epoch_acc))
