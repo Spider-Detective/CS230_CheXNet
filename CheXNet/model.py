@@ -134,7 +134,7 @@ def train_model(model, loss_fn, num_epochs=5):
 
             compare = torch.eq(preds, labels)
             compare = compare.type(torch.FloatTensor)
-            running_corrects += torch.sum(torch.sum(compare) == N_CLASSES)
+            running_corrects += torch.sum(compare) == N_CLASSES
 
         running_corrects = running_corrects.float().data[0]
         epoch_loss = running_loss / len(train_dataset)
@@ -171,4 +171,4 @@ criterion = nn.MultiLabelSoftMarginLoss()
 #exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 
 # Train the model
-model_conv = train_model(model, criterion, num_epochs=25)
+model_conv = train_model(model, criterion, num_epochs=5)
