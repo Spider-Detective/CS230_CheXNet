@@ -27,7 +27,7 @@ CLASS_NAMES = [ 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass
                 'Pneumothorax', 'Consolidation', 'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
 DATA_DIR = './ChestX-ray14/images'
 TRAIN_IMAGE_LIST = './ChestX-ray14/labels/try1.txt'
-BATCH_SIZE = 4
+BATCH_SIZE = 17
 use_gpu = torch.cuda.is_available()
 
 
@@ -82,7 +82,7 @@ def loss_fn(outputs, labels):
 
 
 # a general model definition, scheduler: learning rate decay    
-def train_model(model, loss_fn, num_epochs=5):
+def train_model(model, optimizer, loss_fn, num_epochs=5):
     since = time.time()
 
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -112,18 +112,16 @@ def train_model(model, loss_fn, num_epochs=5):
                 inputs, labels = Variable(inputs), Variable(labels)
 
             # zero the parameter gradients
-            #optimizer.zero_grad()
+            optimizer.zero_grad()
             # forward
             outputs = model(inputs)
-            #_, preds = torch.max(outputs.data, 1)
-            
-            #print(torch.max(outputs.data, 1))
             
             loss = loss_fn(outputs, labels)
 
-            # backward + optimize only if in training phase
+            # backward + optimize 
             loss.backward()
-            #optimizer.step()
+            # performs updates using calculated gradients
+            optimizer.step()
 
             # statistics
             # cutoff by 0.5
@@ -137,6 +135,7 @@ def train_model(model, loss_fn, num_epochs=5):
             running_corrects += torch.sum(compare) == N_CLASSES
 
         running_corrects = running_corrects.float().data[0]
+        #print(len(train_dataset))
         epoch_loss = running_loss / len(train_dataset)
         epoch_acc = running_corrects / len(train_dataset)
 
@@ -160,15 +159,10 @@ model = DenseNet121(N_CLASSES)
 #model = torch.nn.DataParallel(model)
 
 criterion = nn.MultiLabelSoftMarginLoss() 
-
-# Parameters of newly constructed modules have requires_grad=True by default
-#num_ftrs = model_conv.fc.in_features
-#model_conv.fc = nn.Linear(num_ftrs, 2)
-
-#optimizer_conv = optim.SGD(model.classifier.parameters(), lr=0.001, momentum=0.9)
+optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
 # Decay LR by a factor of 0.1 every 7 epochs
 #exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 
 # Train the model
-model_conv = train_model(model, criterion, num_epochs=5)
+model_conv = train_model(model, optimizer, criterion, num_epochs=5)
