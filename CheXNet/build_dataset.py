@@ -62,7 +62,7 @@ if __name__ == '__main__':
     filenames = os.listdir(args.data_dir)
     filenames = [os.path.join(args.data_dir, f) for f in filenames if f.endswith('.png')]
 
-    # Split the images in 'train_signs' into 80% train and 20% val
+    # Split the images in 'train_signs' into 80% train, 10% dev and 10% test
     # Make sure to always shuffle with a fixed seed so that the split is reproducible
     train_filenames, dev_filenames, test_filenames = split_images(filenames, 0.8, 0.1, 0.1)
 

@@ -4,7 +4,6 @@
 The main CheXNet model implementation.
 """
 
-
 import os
 import time
 import copy
@@ -153,6 +152,7 @@ def train_model(model, optimizer, loss_fn, num_epochs=5):
        
         epoch_loss = running_loss / len(train_dataset)
         epoch_acc = running_corrects / len(train_dataset)
+        
 
         print('{} Loss: {:.4f} Acc: {:.4f}'.format(
             'train', epoch_loss, epoch_acc))
