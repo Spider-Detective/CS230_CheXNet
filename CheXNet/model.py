@@ -27,7 +27,7 @@ CLASS_NAMES = [ 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass
                 'Pneumothorax', 'Consolidation', 'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
 DATA_DIR = './ChestX-ray14/images'
 TRAIN_IMAGE_LIST = './ChestX-ray14/labels/try1.txt'
-BATCH_SIZE = 1
+BATCH_SIZE = 4
 use_gpu = torch.cuda.is_available()
 
 
@@ -82,7 +82,7 @@ def loss_fn(outputs, labels):
 
 
 # a general model definition, scheduler: learning rate decay    
-def train_model(model, loss_fn, num_epochs=25):
+def train_model(model, loss_fn, num_epochs=5):
     since = time.time()
 
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -97,7 +97,6 @@ def train_model(model, loss_fn, num_epochs=25):
 
         running_loss = 0.0
         running_corrects = 0
-        print(train_loader)
         
         # Iterate over data.
         for data in train_loader:
@@ -116,8 +115,10 @@ def train_model(model, loss_fn, num_epochs=25):
             #optimizer.zero_grad()
             # forward
             outputs = model(inputs)
-            _, preds = torch.max(outputs.data, 1)
-            print(labels)
+            #_, preds = torch.max(outputs.data, 1)
+            
+            #print(torch.max(outputs.data, 1))
+            
             loss = loss_fn(outputs, labels)
 
             # backward + optimize only if in training phase
@@ -125,19 +126,22 @@ def train_model(model, loss_fn, num_epochs=25):
             #optimizer.step()
 
             # statistics
+            # cutoff by 0.5
+            preds = outputs > 0.5
+            preds = preds.type(torch.FloatTensor)
+        
             running_loss += loss.data[0] * inputs.size(0)
-            running_corrects += torch.sum(preds == labels.data)
 
-        epoch_loss = running_loss / dataset_sizes[phase]
-        epoch_acc = running_corrects / dataset_sizes[phase]
+            compare = torch.eq(preds, labels)
+            compare = compare.type(torch.FloatTensor)
+            running_corrects += torch.sum(torch.sum(compare) == N_CLASSES)
+
+        running_corrects = running_corrects.float().data[0]
+        epoch_loss = running_loss / len(train_dataset)
+        epoch_acc = running_corrects / len(train_dataset)
 
         print('{} Loss: {:.4f} Acc: {:.4f}'.format(
-            phase, epoch_loss, epoch_acc))
-
-        # deep copy the model
-        if phase == 'val' and epoch_acc > best_acc:
-            best_acc = epoch_acc
-            best_model_wts = copy.deepcopy(model.state_dict())
+            'train', epoch_loss, epoch_acc))
 
         print()
 
@@ -155,7 +159,7 @@ def train_model(model, loss_fn, num_epochs=25):
 model = DenseNet121(N_CLASSES)
 #model = torch.nn.DataParallel(model)
 
-criterion = nn.CrossEntropyLoss()
+criterion = nn.MultiLabelSoftMarginLoss() 
 
 # Parameters of newly constructed modules have requires_grad=True by default
 #num_ftrs = model_conv.fc.in_features
