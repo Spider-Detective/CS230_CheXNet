@@ -28,9 +28,9 @@ from sklearn.metrics import roc_auc_score
 N_CLASSES = 14
 CLASS_NAMES = [ 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass', 'Nodule', 'Pneumonia',
                 'Pneumothorax', 'Consolidation', 'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
-DATA_DIR = './ChestX-ray14/images'
-TRAIN_IMAGE_LIST = './ChestX-ray14/labels/try1.txt'
-BATCH_SIZE = 4
+DATA_DIR = 'images/train'
+TRAIN_IMAGE_LIST = 'train_list.txt'
+BATCH_SIZE = 5
 use_gpu = torch.cuda.is_available()
 
 
@@ -182,7 +182,7 @@ model = DenseNet121(N_CLASSES)
 #model = torch.nn.DataParallel(model)
 
 criterion = nn.MultiLabelSoftMarginLoss() 
-optimizer = optim.Adam(model.parameters(), lr=0.0001)
+optimizer = optim.Adam(model.parameters(), lr=0.01)
 
 # Decay LR by a factor of 0.1 every 7 epochs
 #exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)

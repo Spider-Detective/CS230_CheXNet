@@ -21,10 +21,16 @@ import argparse
 import random
 import os
 
+import pandas as pd
+from skimage import io, transform
+import numpy as np
+
 from PIL import Image
 from tqdm import tqdm
 
 SIZE = 224
+CLASS_NAMES = [ 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass', 'Nodule', 'Pneumonia',
+                    'Pneumothorax', 'Consolidation', 'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', default='ChestX-ray14/images', help="Directory with the X-ray image dataset")
@@ -44,6 +50,15 @@ def split_images(filenames, perc1, perc2, perc3):
 
     return train_filenames, dev_filenames, test_filenames
 
+def process_CSV_file(filename):
+    df = pd.read_csv(filename)  # read in the csv label file
+    # split the labels
+    labels = df['Finding Labels'].str.split('|',expand=True)
+    # insert index column at first
+    labels['Image Index'] = df['Image Index']
+    cols = labels.columns.tolist()
+    df = labels[[cols[-1]] + cols[:-1]]
+    return df 
 
 def resize_and_save(filename, output_dir, size=SIZE):
     """Resize the image contained in `filename` and save it to the `output_dir`"""
@@ -51,6 +66,25 @@ def resize_and_save(filename, output_dir, size=SIZE):
     # Use bilinear interpolation instead of the default "nearest neighbor" method
     image = image.resize((size, size), Image.BILINEAR)
     image.save(os.path.join(output_dir, filename.split('/')[-1]))
+
+def write_file_to_list(filename, listfile, datafile):
+    """datafile: object of dataframe"""
+    # get the row corresponding to the filename
+    filename = filename[len(args.data_dir)+1:]
+    row = datafile.loc[filename]
+    
+    # get all labels
+    labels = np.zeros((len(CLASS_NAMES)))
+    for j in range(len(CLASS_NAMES)):
+        for k in range(len(row)):
+            if row[k] == CLASS_NAMES[j]:
+                labels[j] = 1
+    #print(labels)
+    # wrtie in
+    listfile.write("%s " % filename)
+    for label in labels:
+        listfile.write("%s " % int(label))
+    listfile.write('\n')
 
 
 if __name__ == '__main__':
@@ -76,7 +110,10 @@ if __name__ == '__main__':
         print("Warning: output dir {} already exists".format(args.output_dir))
 
     # Preprocess train, val and test
+    datafile = process_CSV_file("Data_Entry_2017.csv")
+    datafile = datafile.set_index(["Image Index"]) # use the column named 'Image Index'
     for split in ['train', 'dev', 'test']:
+        print(len(args.data_dir))
         output_dir_split = os.path.join(args.output_dir, '{}'.format(split))
         if not os.path.exists(output_dir_split):
             os.mkdir(output_dir_split)
@@ -84,7 +121,12 @@ if __name__ == '__main__':
             print("Warning: dir {} already exists".format(output_dir_split))
 
         print("Processing {} data, saving preprocessed data to {}".format(split, output_dir_split))
+        # write into list
+        listname = split + "_list.txt"
+        listfile = open(listname, 'w')
         for filename in tqdm(filenames[split]):
             resize_and_save(filename, output_dir_split, size=SIZE)
+            write_file_to_list(filename, listfile, datafile)
+        listfile.close()
 
     print("Done building dataset")
