@@ -182,7 +182,7 @@ model = DenseNet121(N_CLASSES)
 #model = torch.nn.DataParallel(model)
 
 criterion = nn.MultiLabelSoftMarginLoss() 
-optimizer = optim.Adam(model.parameters(), lr=0.01)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # Decay LR by a factor of 0.1 every 7 epochs
 #exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
