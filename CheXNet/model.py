@@ -26,14 +26,20 @@ from sklearn.metrics import roc_auc_score
 
 # import customised model, metric and params
 import modelSetting.net as net
-
+from evaluate import evaluate
 
 N_CLASSES = 14
 CLASS_NAMES = [ 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass', 'Nodule', 'Pneumonia',
                 'Pneumothorax', 'Consolidation', 'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
-DATA_DIR = 'images/train'
+# Training data and entry list
+TRAIN_DATA_DIR = 'images/train'
 TRAIN_IMAGE_LIST = 'train_list.txt'
-BATCH_SIZE = 5
+TRAIN_BATCH_SIZE = 5
+
+# Dev data and entry list
+DEV_DATA_DIR = 'images/dev' 
+DEV_IMAGE_LIST = 'dev_list.txt'
+DEV_BATCH_SIZE = 2
 use_gpu = torch.cuda.is_available()
 
 
@@ -43,16 +49,24 @@ normalize = transforms.Normalize([0.485, 0.456, 0.406],
 # Create the input data pipeline
 logging.info("Loading the datasets...")
 
-train_dataset = ChestXrayDataSet(data_dir=DATA_DIR,
+train_dataset = ChestXrayDataSet(data_dir=TRAIN_DATA_DIR,
                                 image_list_file=TRAIN_IMAGE_LIST,
                                 transform=transforms.Compose([
                                     transforms.Resize(224),
                                     transforms.ToTensor(),
                                 ]))
-train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE,
+train_loader = DataLoader(dataset=train_dataset, batch_size=TRAIN_BATCH_SIZE,
                          shuffle=False, num_workers=8, pin_memory=False)
 
 
+dev_dataset = ChestXrayDataSet(data_dir=DEV_DATA_DIR,
+                                image_list_file=DEV_IMAGE_LIST,
+                                transform=transforms.Compose([
+                                    transforms.Resize(224),
+                                    transforms.ToTensor(),
+                                ]))
+dev_loader = DataLoader(dataset=dev_dataset, batch_size=DEV_BATCH_SIZE,
+                         shuffle=False, num_workers=8, pin_memory=False)
 
 class DenseNet121(nn.Module):
     """Model modified.
@@ -93,7 +107,7 @@ def loss_fn(outputs, labels):
 
 
 # a general model definition, scheduler: learning rate decay    
-def train_model(model, optimizer, loss_fn, metrics ,num_epochs=5):
+def train_model(model, optimizer,train_loader, loss_fn, metrics ,num_epochs=5):
     since = time.time()
 
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -171,6 +185,9 @@ def train_model(model, optimizer, loss_fn, metrics ,num_epochs=5):
         metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in metrics_mean.items())
         logging.info("- Train metrics: " + metrics_string)
 
+        if metrics_mean['accuracy'] > best_acc:
+            best_acc = metrics_mean['accuracy']
+            
         # Calculate the epoch loss and epoch metrics(accuracy)
         epoch_loss = running_loss / len(train_dataset)
 
@@ -178,10 +195,10 @@ def train_model(model, optimizer, loss_fn, metrics ,num_epochs=5):
             'train', epoch_loss))
         print("- Train metrics: " + metrics_string)
 
+    print('Best training Acc: {:4f}'.format(best_acc))
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
         time_elapsed // 60, time_elapsed % 60))
-    print('Best val Acc: {:4f}'.format(best_acc))
 
     # load best model weights
     model.load_state_dict(best_model_wts)
@@ -201,5 +218,9 @@ metrics = net.metrics
 # Decay LR by a factor of 0.1 every 7 epochs
 #exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 
-# Train the model
-model_conv = train_model(model, optimizer, criterion, metrics, num_epochs=5)
+# Train the model in the training set
+model_conv = train_model(model, optimizer, train_loader, criterion, metrics, num_epochs = 5)
+
+# evalute the model in the val_dataset
+print("Metric Report for the dev set") 
+dev_metrics = evaluate(model_conv, criterion, dev_loader, metrics,use_gpu)
