@@ -24,6 +24,9 @@ from torch.utils.data import DataLoader
 from read_data import ChestXrayDataSet
 from sklearn.metrics import roc_auc_score
 
+# import customised model, metric and params
+import modelSetting.net as net
+
 
 N_CLASSES = 14
 CLASS_NAMES = [ 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass', 'Nodule', 'Pneumonia',
@@ -90,7 +93,7 @@ def loss_fn(outputs, labels):
 
 
 # a general model definition, scheduler: learning rate decay    
-def train_model(model, optimizer, loss_fn, num_epochs=5):
+def train_model(model, optimizer, loss_fn, metrics ,num_epochs=5):
     since = time.time()
 
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -106,6 +109,8 @@ def train_model(model, optimizer, loss_fn, num_epochs=5):
         running_loss = 0.0
         running_corrects = 0
         running_accuracy = 0.0
+        # summary for all the mini batch of metrics and loss
+        summ = []
 
         with tqdm(total=len(train_loader)) as t:
             # Iterate over data.
@@ -139,33 +144,39 @@ def train_model(model, optimizer, loss_fn, num_epochs=5):
                 preds = outputs >= 0.5
                 preds = preds.type(torch.FloatTensor)
 
+
+                # Here, we calculat the metrics and the loss for every batch
+                # and save them to the summ
                 # extract data from torch Variable, move to cpu, convert to
                 # numpy
-                preds_np = preds.data.cpu().numpy()
-                labels_np = labels.data.cpu().numpy()
-                running_accuracy += np.sum(preds_np == labels_np)/float(labels_np.size)
+                preds_batch = preds.data.cpu().numpy()
+                labels_batch = labels.data.cpu().numpy()
 
+                # Compute all metrics in this batch
+                summary_batch = {metric:metrics[metric](preds_batch,labels_batch) for metric in metrics}
+                summary_batch['loss'] = loss.data[0]
+                summ.append(summary_batch)
 
+                # ToDo, we can use the above summary_batch instead of calculate
+                # running_loss for every batch
                 running_loss += loss.data[0] #* inputs.size(0)
-
-                compare = torch.eq(preds, labels)
-                compare = compare.type(torch.FloatTensor)
-                running_corrects += torch.sum(compare) == N_CLASSES
 
                 t.set_postfix(loss='{:05.3f}'.format(running_loss))
                 t.update()
 
-        running_corrects = running_corrects.float().data[0]
+        # Here, when we update all the batch in a certain epoch, we will calculate
+        # the mean metrics for this epoch
+        # compute mean of all metrics in summary
+        metrics_mean = {metric:np.mean([x[metric] for x in summ]) for metric in summ[0]}
+        metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in metrics_mean.items())
+        logging.info("- Train metrics: " + metrics_string)
 
         # Calculate the epoch loss and epoch metrics(accuracy)
         epoch_loss = running_loss / len(train_dataset)
 
-        epoch_acc = running_accuracy / len(train_dataset)
-        if epoch_acc > best_acc:
-            best_acc = epoch_acc
-
-        print('{} Loss: {:.4f} Acc: {:.4f}'.format(
-            'train', epoch_loss, epoch_acc))
+        print('{} Loss: {:.4f} '.format(
+            'train', epoch_loss))
+        print("- Train metrics: " + metrics_string)
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
@@ -184,8 +195,11 @@ model = DenseNet121(N_CLASSES)
 criterion = nn.MultiLabelSoftMarginLoss() 
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
+# Define the metrics
+metrics = net.metrics
+
 # Decay LR by a factor of 0.1 every 7 epochs
 #exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 
 # Train the model
-model_conv = train_model(model, optimizer, criterion, num_epochs=5)
+model_conv = train_model(model, optimizer, criterion, metrics, num_epochs=5)
