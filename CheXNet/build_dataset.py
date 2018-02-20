@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
     # Split the images in 'train_signs' into 80% train, 10% dev and 10% test
     # Make sure to always shuffle with a fixed seed so that the split is reproducible
-    train_filenames, dev_filenames, test_filenames = split_images(filenames, 0.8, 0.1, 0.1)
+    train_filenames, dev_filenames, test_filenames = split_images(filenames, 0.7, 0.2, 0.1)
 
     filenames = {'train': train_filenames,
                  'dev': dev_filenames,
