@@ -5,6 +5,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import average_precision_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import f1_score
+
 # We can define our own custom model here and import into the our trainning
 # function
 
@@ -126,9 +132,25 @@ def accuracy(outputs, labels):
     """
     return np.sum(outputs==labels)/float(labels.size)
 
+def ROC_AUC(outputs,labels):
+    return roc_auc_score(labels, outputs)
 
+def precision(outputs,labels):
+    return precision_score(labels, outputs, average='weighted')
+
+def recall(outputs,labels):
+    return recall_score(labels, outputs, average='weighted')
+
+def f1(outputs,labels):
+    return f1_score(labels, outputs, average='weighted')
+    
 # maintain all metrics required in this dictionary- these are used in the training and evaluation loops
 metrics = {
-    'accuracy': accuracy,
+    #'exact_accuracy': overall_accuracy,
     # could add more metrics such as accuracy for each token type
+    'accuracy': accuracy,
+    #'ROC_AUC': ROC_AUC,
+    'precision':precision,
+    'recall':recall,
+    'f1':f1
 }
