@@ -5,7 +5,7 @@ Read images and corresponding labels.
 """
 
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 import os
 
@@ -52,4 +52,50 @@ class ChestXrayDataSet(Dataset):
 
     def __len__(self):
         return len(self.image_names)
+
+
+def fetch_dataloader(types, data_dir, image_list_file):
+    """
+    Fetches the DataLoader object for each type in types from data_dir.
+
+    Args:
+        types: (list) has one or more of 'train', 'val', 'test' depending on which data is required
+        data_dir: (string) directory containing the dataset
+        params: (Params) hyperparameters
+
+    Returns:
+        data: (dict) contains the DataLoader object for each type in types
+    """
+    dataloaders = {}
+
+    for split in ['train', 'val', 'test']:
+        if split in types:
+            path = os.path.join(data_dir, "{}_list.txt".format(split))
+
+            # use the train_transformer if training data, else use eval_transformer without random flip
+            if split == 'train':
+                dl = DataLoader(ChestXrayDataSet(data_dir=TRAIN_DATA_DIR,
+                                image_list_file=TRAIN_IMAGE_LIST,
+                                transform=transforms.Compose([
+                                    transforms.Resize(224),
+                                    transforms.ToTensor(),
+                                ])), batch_size=TRAIN_BATCH_SIZE, shuffle=False, num_workers=8, pin_memory=False)
+
+                #dl = DataLoader(SIGNSDataset(path, train_transformer), batch_size=params.batch_size, shuffle=True,
+                 #                       num_workers=params.num_workers,
+                  #                      pin_memory=params.cuda)
+            else:
+                dl = DataLoader(ChestXrayDataSet(data_dir=DEV_DATA_DIR,
+                                image_list_file=DEV_IMAGE_LIST,
+                                transform=transforms.Compose([
+                                    transforms.Resize(224),
+                                    transforms.ToTensor(),
+                                ])), batch_size=TRAIN_BATCH_SIZE, shuffle=False, num_workers=8, pin_memory=False)
+                #dl = DataLoader(SIGNSDataset(path, eval_transformer), batch_size=params.batch_size, shuffle=False,
+                #                num_workers=params.num_workers,
+                #                pin_memory=params.cuda)
+
+            dataloaders[split] = dl
+
+    return dataloaders
 

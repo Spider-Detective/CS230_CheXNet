@@ -210,7 +210,7 @@ model = DenseNet121(N_CLASSES)
 #model = torch.nn.DataParallel(model)
 
 criterion = nn.MultiLabelSoftMarginLoss() 
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=5e-2)
 
 # Define the metrics
 metrics = net.metrics

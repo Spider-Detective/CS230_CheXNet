@@ -9,6 +9,7 @@ import torch
 from torch.autograd import Variable
 #import utils
 import modelSetting.net as net
+import read_data
 #from read_data import ChestXrayDataSet
 #import model.data_loader as data_loader
 
@@ -77,16 +78,16 @@ def evaluate(model, loss_fn, dataloader, metrics, use_gpu):
     return metrics_mean
 
 # ToDo, we can add the separate evaluate part later.
-'''
+
 if __name__ == '__main__':
     """
         Evaluate the model on the test set.
     """
     # Load the parameters
     args = parser.parse_args()
-    json_path = os.path.join(args.model_dir, 'params.json')
-    assert os.path.isfile(json_path), "No json configuration file found at {}".format(json_path)
-    params = utils.Params(json_path)
+    #json_path = os.path.join(args.model_dir, 'params.json')
+    #assert os.path.isfile(json_path), "No json configuration file found at {}".format(json_path)
+    #params = utils.Params(json_path)
 
     # use GPU if available
     params.cuda = torch.cuda.is_available()     # use GPU is available
@@ -96,14 +97,14 @@ if __name__ == '__main__':
     if params.cuda: torch.cuda.manual_seed(230)
         
     # Get the logger
-    utils.set_logger(os.path.join(args.model_dir, 'evaluate.log'))
+    #utils.set_logger(os.path.join(args.model_dir, 'evaluate.log'))
 
     # Create the input data pipeline
     logging.info("Creating the dataset...")
 
     # fetch dataloaders
-    dataloaders = data_loader.fetch_dataloader(['test'], args.data_dir, params)
-    test_dl = dataloaders['test']
+    dataloaders = read_data.fetch_dataloader(['dev'], args.data_dir, )
+    test_dl = dataloaders['dev']
 
     logging.info("- done.")
 
@@ -116,10 +117,10 @@ if __name__ == '__main__':
     logging.info("Starting evaluation")
 
     # Reload weights from the saved file
-    utils.load_checkpoint(os.path.join(args.model_dir, args.restore_file + '.pth.tar'), model)
+    #utils.load_checkpoint(os.path.join(args.model_dir, args.restore_file + '.pth.tar'), model)
 
     # Evaluate
     test_metrics = evaluate(model, loss_fn, test_dl, metrics, params)
     save_path = os.path.join(args.model_dir, "metrics_test_{}.json".format(args.restore_file))
     utils.save_dict_to_json(test_metrics, save_path)
-'''
+
