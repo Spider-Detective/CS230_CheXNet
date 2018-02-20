@@ -20,6 +20,7 @@ import torch.optim as optim
 import torchvision.transforms as transforms
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
+import utils
 
 from read_data import ChestXrayDataSet
 from sklearn.metrics import roc_auc_score
@@ -210,7 +211,7 @@ model = DenseNet121(N_CLASSES)
 #model = torch.nn.DataParallel(model)
 
 criterion = nn.MultiLabelSoftMarginLoss() 
-optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=5e-2)
+optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=5e-4)
 
 # Define the metrics
 metrics = net.metrics
@@ -220,6 +221,10 @@ metrics = net.metrics
 
 # Train the model in the training set
 model_conv = train_model(model, optimizer, train_loader, criterion, metrics, num_epochs = 5)
+
+utils.save_checkpoint({'state_dict': model.state_dict()}, is_best=None,
+                               checkpoint='trial1')
+#utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
 
 # evalute the model in the val_dataset
 print("Metric Report for the dev set") 

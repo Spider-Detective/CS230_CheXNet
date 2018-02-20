@@ -10,6 +10,8 @@ from torch.autograd import Variable
 #import utils
 import modelSetting.net as net
 import read_data
+import utils
+import model
 #from read_data import ChestXrayDataSet
 #import model.data_loader as data_loader
 
@@ -78,23 +80,25 @@ def evaluate(model, loss_fn, dataloader, metrics, use_gpu):
     return metrics_mean
 
 # ToDo, we can add the separate evaluate part later.
+DEV_DATA_DIR = 'images/dev' 
+DEV_IMAGE_LIST = 'dev_list.txt'
 
 if __name__ == '__main__':
     """
         Evaluate the model on the test set.
     """
     # Load the parameters
-    args = parser.parse_args()
+    #args = parser.parse_args()
     #json_path = os.path.join(args.model_dir, 'params.json')
     #assert os.path.isfile(json_path), "No json configuration file found at {}".format(json_path)
     #params = utils.Params(json_path)
 
     # use GPU if available
-    params.cuda = torch.cuda.is_available()     # use GPU is available
+    #params.cuda = torch.cuda.is_available()     # use GPU is available
 
     # Set the random seed for reproducible experiments
     torch.manual_seed(230)
-    if params.cuda: torch.cuda.manual_seed(230)
+    #if params.cuda: torch.cuda.manual_seed(230)
         
     # Get the logger
     #utils.set_logger(os.path.join(args.model_dir, 'evaluate.log'))
@@ -103,24 +107,27 @@ if __name__ == '__main__':
     logging.info("Creating the dataset...")
 
     # fetch dataloaders
-    dataloaders = read_data.fetch_dataloader(['dev'], args.data_dir, )
+    dataloaders = read_data.fetch_dataloader(['dev'], DEV_DATA_DIR, DEV_IMAGE_LIST)
     test_dl = dataloaders['dev']
 
     logging.info("- done.")
 
     # Define the model
-    model = net.Net(params).cuda() if params.cuda else net.Net(params)
-    
+    # model = net.Net(params).cuda() if params.cuda else net.Net(params)
+    # model = utils.load_
     loss_fn = net.loss_fn
     metrics = net.metrics
-    
+    N_CLASS = 14
+    dev_model = model.DenseNet121(N_CLASSES)
+    utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
+
     logging.info("Starting evaluation")
 
     # Reload weights from the saved file
     #utils.load_checkpoint(os.path.join(args.model_dir, args.restore_file + '.pth.tar'), model)
-
+    use_gpu = torch.cuda.is_available()
     # Evaluate
-    test_metrics = evaluate(model, loss_fn, test_dl, metrics, params)
-    save_path = os.path.join(args.model_dir, "metrics_test_{}.json".format(args.restore_file))
-    utils.save_dict_to_json(test_metrics, save_path)
+    test_metrics = evaluate(dev_model, loss_fn, test_dl, metrics, use_gpu)
+    #save_path = os.path.join(args.model_dir, "metrics_test_{}.json".format(args.restore_file))
+    #utils.save_dict_to_json(test_metrics, save_path)
 

@@ -98,7 +98,7 @@ class Net(nn.Module):
 # Here is our own customized defined loss function, we can made our customed loss
 # function here.
 
-'''
+
 def loss_fn(outputs, labels):
     """
     Compute the cross entropy loss given outputs and labels.
@@ -115,8 +115,7 @@ def loss_fn(outputs, labels):
     """
     num_examples = outputs.size()[0]
     return -torch.sum(outputs[range(num_examples), labels])/num_examples
-
-'''
+    
 
 # Here is our customized 
 def accuracy(outputs, labels):

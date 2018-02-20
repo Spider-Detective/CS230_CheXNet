@@ -7,8 +7,16 @@ Read images and corresponding labels.
 import torch
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
+import torchvision.transforms as transforms
 import os
 
+TRAIN_DATA_DIR = 'images/train'
+TRAIN_IMAGE_LIST = 'train_list.txt'
+
+DEV_DATA_DIR = 'images/dev' 
+DEV_IMAGE_LIST = 'dev_list.txt'
+
+TRAIN_BATCH_SIZE = 5
 
 class ChestXrayDataSet(Dataset):
     def __init__(self, data_dir, image_list_file, transform=None):
@@ -68,7 +76,7 @@ def fetch_dataloader(types, data_dir, image_list_file):
     """
     dataloaders = {}
 
-    for split in ['train', 'val', 'test']:
+    for split in ['train', 'dev', 'test']:
         if split in types:
             path = os.path.join(data_dir, "{}_list.txt".format(split))
 
