@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision
 
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import average_precision_score
@@ -13,6 +14,26 @@ from sklearn.metrics import f1_score
 
 # We can define our own custom model here and import into the our trainning
 # function
+
+class DenseNet121(nn.Module):
+    """Model modified.
+
+    The architecture of our model is the same as standard DenseNet121
+    except the classifier layer which has an additional sigmoid function.
+
+    """
+    def __init__(self, out_size):
+        super(DenseNet121, self).__init__()
+        self.densenet121 = torchvision.models.densenet121(pretrained=True)
+        num_ftrs = self.densenet121.classifier.in_features
+        self.densenet121.classifier = nn.Sequential(
+            nn.Linear(num_ftrs, out_size),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        x = self.densenet121(x)
+        return x 
 
 '''
 class Net(nn.Module):
@@ -115,7 +136,7 @@ def loss_fn(outputs, labels):
     """
     num_examples = outputs.size()[0]
     return -torch.sum(outputs[range(num_examples), labels])/num_examples
-    
+
 
 # Here is our customized 
 def accuracy(outputs, labels):

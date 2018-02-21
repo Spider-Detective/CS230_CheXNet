@@ -3,39 +3,51 @@
 """
 Read images and corresponding labels.
 """
+import os
+import random
 
 import torch
 from torch.utils.data import Dataset, DataLoader
-from PIL import Image
 import torchvision.transforms as transforms
-import os
+from PIL import Image
 
-TRAIN_DATA_DIR = 'images/train'
-TRAIN_IMAGE_LIST = 'train_list.txt'
+# borrowed from http://pytorch.org/tutorials/beginner/data_loading_tutorial.html
+# define a training image loader that specifies transforms on images. See documentation for more details.
+train_transformer = transforms.Compose([
+    transforms.Resize(224),  # resize the image to 64x64 (remove if images are already 64x64)
+    transforms.RandomHorizontalFlip(),  # randomly flip image horizontally
+    transforms.ToTensor()])  # transform it into a torch tensor
 
-DEV_DATA_DIR = 'images/dev' 
-DEV_IMAGE_LIST = 'dev_list.txt'
+# loader for evaluation, no horizontal flip
+eval_transformer = transforms.Compose([
+    transforms.Resize(224),  # resize the image to 64x64 (remove if images are already 64x64)
+    transforms.ToTensor()])  # transform it into a torch tensor
+
+#TRAIN_DATA_DIR = 'images/train'
+#TRAIN_IMAGE_LIST = 'train_list.txt'
+
+#DEV_DATA_DIR = 'images/dev' 
+#DEV_IMAGE_LIST = 'dev_list.txt'
 
 TRAIN_BATCH_SIZE = 5
 
 class ChestXrayDataSet(Dataset):
-    def __init__(self, data_dir, image_list_file, transform=None):
+    def __init__(self, image_file, label_file, transform=None):
         """
         Args:
-            data_dir: path to image directory.
-            image_list_file: path to the file containing images
-                with corresponding labels.
+            image_file: path to image files.
+            label_file: output path to the file containing corresponding labels.
             transform: optional transform to be applied on a sample.
         """
         image_names = []
         labels = []
-        with open(image_list_file, "r") as f:
+        with open(label_file, "r") as f:
             for line in f:
                 items = line.split()
                 image_name= items[0]
                 label = items[1:]
                 label = [int(i) for i in label]
-                image_name = os.path.join(data_dir, image_name)
+                image_name = os.path.join(image_file, image_name)
                 image_names.append(image_name)
                 labels.append(label)
 
@@ -62,13 +74,14 @@ class ChestXrayDataSet(Dataset):
         return len(self.image_names)
 
 
-def fetch_dataloader(types, data_dir, image_list_file):
+def fetch_dataloader(types, image_dir, label_dir):
     """
     Fetches the DataLoader object for each type in types from data_dir.
 
     Args:
         types: (list) has one or more of 'train', 'val', 'test' depending on which data is required
-        data_dir: (string) directory containing the dataset
+        image_dir: (string) directory containing all the images
+        label_dir: (string) directory containing all the labels
         params: (Params) hyperparameters
 
     Returns:
@@ -78,32 +91,14 @@ def fetch_dataloader(types, data_dir, image_list_file):
 
     for split in ['train', 'dev', 'test']:
         if split in types:
-            path = os.path.join(data_dir, "{}_list.txt".format(split))
-
+            label_path = os.path.join(label_dir, "{}_list.txt".format(split))
+            image_path = os.path.join(image_dir, "{}".format(split))
             # use the train_transformer if training data, else use eval_transformer without random flip
             if split == 'train':
-                dl = DataLoader(ChestXrayDataSet(data_dir=TRAIN_DATA_DIR,
-                                image_list_file=TRAIN_IMAGE_LIST,
-                                transform=transforms.Compose([
-                                    transforms.Resize(224),
-                                    transforms.ToTensor(),
-                                ])), batch_size=TRAIN_BATCH_SIZE, shuffle=False, num_workers=8, pin_memory=False)
-
-                #dl = DataLoader(SIGNSDataset(path, train_transformer), batch_size=params.batch_size, shuffle=True,
-                 #                       num_workers=params.num_workers,
-                  #                      pin_memory=params.cuda)
+                ds = ChestXrayDataSet(image_file=image_path, label_file=label_path, transform=train_transformer)
             else:
-                dl = DataLoader(ChestXrayDataSet(data_dir=DEV_DATA_DIR,
-                                image_list_file=DEV_IMAGE_LIST,
-                                transform=transforms.Compose([
-                                    transforms.Resize(224),
-                                    transforms.ToTensor(),
-                                ])), batch_size=TRAIN_BATCH_SIZE, shuffle=False, num_workers=8, pin_memory=False)
-                #dl = DataLoader(SIGNSDataset(path, eval_transformer), batch_size=params.batch_size, shuffle=False,
-                #                num_workers=params.num_workers,
-                #                pin_memory=params.cuda)
-
-            dataloaders[split] = dl
+                ds = ChestXrayDataSet(image_file=image_path, label_file=label_path, transform=eval_transformer)
+            dataloaders[split] = DataLoader(ds, batch_size=TRAIN_BATCH_SIZE, shuffle=False, num_workers=8, pin_memory=False)
 
     return dataloaders
 

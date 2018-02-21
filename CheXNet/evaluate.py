@@ -11,7 +11,7 @@ from torch.autograd import Variable
 import modelSetting.net as net
 import read_data
 import utils
-import model
+#import model
 #from read_data import ChestXrayDataSet
 #import model.data_loader as data_loader
 
@@ -80,8 +80,7 @@ def evaluate(model, loss_fn, dataloader, metrics, use_gpu):
     return metrics_mean
 
 # ToDo, we can add the separate evaluate part later.
-DEV_DATA_DIR = 'images/dev' 
-DEV_IMAGE_LIST = 'dev_list.txt'
+
 
 if __name__ == '__main__':
     """
@@ -102,7 +101,8 @@ if __name__ == '__main__':
         
     # Get the logger
     #utils.set_logger(os.path.join(args.model_dir, 'evaluate.log'))
-
+    DEV_DATA_DIR = 'images/dev' 
+    DEV_IMAGE_LIST = 'dev_list.txt'
     # Create the input data pipeline
     logging.info("Creating the dataset...")
 

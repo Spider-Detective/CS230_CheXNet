@@ -1,20 +1,24 @@
-"""Split the SIGNS dataset into train/val/test and resize images to 64x64.
+"""Two tasks:
+    1. Split the CheXNet dataset into train/dev/test and resize images to 224x224.
+    2. Write the CSV file into labels of size 14x1 according to every image name
 
-The SIGNS dataset comes into the following format:
-    train_signs/
-        0_IMG_5864.jpg
-        ...
-    test_signs/
-        0_IMG_5942.jpg
-        ...
+The final CheXNet dataset is in the following format:
+    images/
+        train/
+            00000001_000.png
+            ...
+        dev/
+            00000003_012.png
+            ...
+        test/
+            00000213_010.png
+            ...
 
-Original images have size (3024, 3024).
-Resizing to (64, 64) reduces the dataset size from 1.16 GB to 4.7 MB, and loading smaller images
-makes training faster.
+Original images have size (1024, 1024).
+Resizing to (224, 224) reduces the dataset size, and loading smaller images
+makes training faster. DenseNet121 also requires the input images to be of
+this size.
 
-We already have a test set created, so we only need to split "train_signs" into train and val sets.
-Because we don't have a lot of images and we want that the statistics on the val set be as
-representative as possible, we'll take 20% of "train_signs" as val set.
 """
 
 import argparse
@@ -34,7 +38,8 @@ CLASS_NAMES = [ 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', default='ChestX-ray14/images', help="Directory with the X-ray image dataset")
-parser.add_argument('--output_dir', default='images/', help="Where to write the new data")
+parser.add_argument('--output_image_dir', default='images/', help="Where to write the new images")
+parser.add_argument('--output_label_dir', default='labels/', help="Where to write the new labels")
 
 def split_images(filenames, perc1, perc2, perc3):
     random.seed(230)
@@ -70,7 +75,7 @@ def resize_and_save(filename, output_dir, size=SIZE):
 def write_file_to_list(filename, listfile, datafile):
     """datafile: object of dataframe"""
     # get the row corresponding to the filename
-    filename = filename[len(args.data_dir)+1:]
+    filename = filename.split('/')[-1]
     row = datafile.loc[filename]
     
     # get all labels
@@ -79,13 +84,11 @@ def write_file_to_list(filename, listfile, datafile):
         for k in range(len(row)):
             if row[k] == CLASS_NAMES[j]:
                 labels[j] = 1
-    #print(labels)
     # wrtie in
     listfile.write("%s " % filename)
     for label in labels:
         listfile.write("%s " % int(label))
     listfile.write('\n')
-
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -104,28 +107,34 @@ if __name__ == '__main__':
                  'dev': dev_filenames,
                  'test': test_filenames}
 
-    if not os.path.exists(args.output_dir):
-        os.mkdir(args.output_dir)
+    if not os.path.exists(args.output_image_dir):
+        os.mkdir(args.output_image_dir)
     else:
-        print("Warning: output dir {} already exists".format(args.output_dir))
+        print("Warning: output image dir {} already exists".format(args.output_image_dir))
+
+    if not os.path.exists(args.output_label_dir):
+        os.mkdir(args.output_label_dir)
+    else:
+        print("Warning: output labeldir {} already exists".format(args.output_label_dir))
 
     # Preprocess train, val and test
     datafile = process_CSV_file("Data_Entry_2017.csv")
     datafile = datafile.set_index(["Image Index"]) # use the column named 'Image Index'
     for split in ['train', 'dev', 'test']:
-        print(len(args.data_dir))
-        output_dir_split = os.path.join(args.output_dir, '{}'.format(split))
-        if not os.path.exists(output_dir_split):
-            os.mkdir(output_dir_split)
+        # get the directory of output images
+        output_image_dir_split = os.path.join(args.output_image_dir, '{}'.format(split))
+        if not os.path.exists(output_image_dir_split):
+            os.mkdir(output_image_dir_split)
         else:
-            print("Warning: dir {} already exists".format(output_dir_split))
+            print("Warning: dir {} already exists".format(output_image_dir_split))
 
-        print("Processing {} data, saving preprocessed data to {}".format(split, output_dir_split))
-        # write into list
-        listname = split + "_list.txt"
+        print("Processing {} data, saving preprocessed images to {} and writing corresponding list to {}".
+                format(split, output_image_dir_split, args.output_label_dir))
+        # open the list file
+        listname = os.path.join(args.output_label_dir, '{}'.format(split + "_list.txt"))
         listfile = open(listname, 'w')
         for filename in tqdm(filenames[split]):
-            resize_and_save(filename, output_dir_split, size=SIZE)
+            resize_and_save(filename, output_image_dir_split, size=SIZE)
             write_file_to_list(filename, listfile, datafile)
         listfile.close()
 
