@@ -151,7 +151,7 @@ if use_gpu:
     model = DenseNet121(N_CLASSES).cuda()
 
 criterion = nn.MultiLabelSoftMarginLoss() 
-optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=5e-4)
+optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=5e-5)
 
 # Define the metrics
 metrics = net.metrics

@@ -6,12 +6,13 @@ import os
 
 import numpy as np
 import torch
+import torch.nn as nn
 from torch.autograd import Variable
-#import utils
+
 import modelSetting.net as net
 import read_data
 import utils
-#import model
+
 #from read_data import ChestXrayDataSet
 #import model.data_loader as data_loader
 
@@ -101,13 +102,13 @@ if __name__ == '__main__':
         
     # Get the logger
     #utils.set_logger(os.path.join(args.model_dir, 'evaluate.log'))
-    DEV_DATA_DIR = 'images/dev' 
-    DEV_IMAGE_LIST = 'dev_list.txt'
+    #DEV_DATA_DIR = 'images/dev' 
+    #DEV_IMAGE_LIST = 'dev_list.txt'
     # Create the input data pipeline
     logging.info("Creating the dataset...")
 
     # fetch dataloaders
-    dataloaders = read_data.fetch_dataloader(['dev'], DEV_DATA_DIR, DEV_IMAGE_LIST)
+    dataloaders = read_data.fetch_dataloader(['dev'], 'images', 'labels')
     test_dl = dataloaders['dev']
 
     logging.info("- done.")
@@ -115,10 +116,11 @@ if __name__ == '__main__':
     # Define the model
     # model = net.Net(params).cuda() if params.cuda else net.Net(params)
     # model = utils.load_
-    loss_fn = net.loss_fn
+    #loss_fn = net.loss_fn
+    loss_fn = nn.MultiLabelSoftMarginLoss() 
     metrics = net.metrics
-    N_CLASS = 14
-    dev_model = model.DenseNet121(N_CLASSES)
+    N_CLASSES = 14
+    dev_model = net.DenseNet121(N_CLASSES)
     utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
 
     logging.info("Starting evaluation")
