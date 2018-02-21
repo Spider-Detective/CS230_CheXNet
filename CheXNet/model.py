@@ -128,11 +128,7 @@ def train_model(model, optimizer, train_loader, loss_fn, metrics, num_epochs=5):
         if metrics_mean['accuracy'] > best_acc:
             best_acc = metrics_mean['accuracy']
             best_model_wts = copy.deepcopy(model.state_dict())
-            
-        # Calculate the epoch loss and epoch metrics(accuracy)
-        #epoch_loss = running_loss / len(train_dataset)
-
-        #print('{} Loss: {:.4f} '.format('train', epoch_loss))
+        
         print("- Train metrics: " + metrics_string)
 
     print('Best training Acc: {:4f}'.format(best_acc))
