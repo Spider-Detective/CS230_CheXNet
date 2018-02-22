@@ -57,8 +57,12 @@ def loss_fn(outputs, labels):
     return -torch.sum(outputs[range(num_examples), labels])/num_examples
 
 
-# Here is our customized 
-def accuracy(outputs, labels):
+# Here is our customized
+def accuracy(outputs, label):
+    np.savetxt('output.txt', outputs, delimiter = " ", fmt = '%1d')
+    return (1 - np.count_nonzero(np.linalg.norm(outputs - label, axis = 1)) / outputs.shape[0]) 
+
+def total_accuracy(outputs, labels):
     """
     Compute the accuracy, given the outputs and labels for all images.
 
@@ -88,6 +92,7 @@ metrics = {
     #'exact_accuracy': overall_accuracy,
     # could add more metrics such as accuracy for each token type
     'accuracy': accuracy,
+    'total_accuracy': total_accuracy,
     #'ROC_AUC': ROC_AUC,
     'precision':precision,
     'recall':recall,
