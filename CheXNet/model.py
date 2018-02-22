@@ -151,8 +151,8 @@ dev_dl = dataloaders['dev']
 # initialize and load the model
 model = net.DenseNet121(N_CLASSES)
 if use_gpu:
-    model = DenseNet121(N_CLASSES).cuda()
-
+    model = net.DenseNet121(N_CLASSES).cuda()
+    model = torch.nn.DataParallel(model)
 criterion = nn.MultiLabelSoftMarginLoss() 
 optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=5e-5)
 
@@ -163,7 +163,7 @@ metrics = net.metrics
 #exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 
 # Train the model in the training set
-model_conv = train_model(model, optimizer, train_dl, criterion, metrics, num_epochs = 4)
+model_conv = train_model(model, optimizer, train_dl, criterion, metrics, num_epochs = 3)
 
 utils.save_checkpoint({'state_dict': model.state_dict()}, is_best=None, checkpoint='trial1')
 #utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
