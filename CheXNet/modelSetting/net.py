@@ -59,7 +59,7 @@ def loss_fn(outputs, labels):
 
 # Here is our customized
 def accuracy(outputs, label):
-    np.savetxt('output.txt', outputs, delimiter = " ", fmt = '%1d')
+    np.savetxt('output.txt', outputs - label, delimiter = " ", fmt = '%1d')
     return (1 - np.count_nonzero(np.linalg.norm(outputs - label, axis = 1)) / outputs.shape[0]) 
 
 def total_accuracy(outputs, labels):
