@@ -73,7 +73,10 @@ def train_model(model, optimizer, train_loader, loss_fn, metrics, num_epochs=5):
         #print(len(train_loader))
         with tqdm(total=len(train_loader)) as t:
             # Iterate over data.
-            for (inputs, labels) in train_loader:
+             for data in train_loader:
+                # get the inputs
+
+                inputs, labels = data
 
                 # wrap them in Variable
                 if use_gpu:

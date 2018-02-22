@@ -69,7 +69,7 @@ def accuracy(outputs, labels):
 
     Returns: (float) accuracy in [0,1]
     """
-    return np.sum(outputs==labels)/float(labels.size)
+    return np.sum(outputs==labels)/float(labels.size) 
 
 def ROC_AUC(outputs,labels):
     return roc_auc_score(labels, outputs)
