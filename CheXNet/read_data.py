@@ -6,6 +6,7 @@ Read images and corresponding labels.
 import os
 import random
 
+import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
@@ -29,7 +30,7 @@ eval_transformer = transforms.Compose([
 #DEV_DATA_DIR = 'images/dev' 
 #DEV_IMAGE_LIST = 'dev_list.txt'
 
-TRAIN_BATCH_SIZE = 5
+TRAIN_BATCH_SIZE = 11
 
 class ChestXrayDataSet(Dataset):
     def __init__(self, image_file, label_file, transform=None):
@@ -44,9 +45,16 @@ class ChestXrayDataSet(Dataset):
         with open(label_file, "r") as f:
             for line in f:
                 items = line.split()
-                image_name= items[0]
-                label = items[1:]
-                label = [int(i) for i in label]
+                image_name= items[0]                
+                # we use binary classification, thus we only choose item[1]
+                #label = items[1]
+                finding = np.count_nonzero( np.asarray(items[1:], dtype = np.int32)  )
+                if finding == 0:
+                    label = [0]
+                else:
+                    label = [1]
+                # label = items[1:]
+                #label = [int(i) for i in label]
                 image_name = os.path.join(image_file, image_name)
                 image_names.append(image_name)
                 labels.append(label)

@@ -29,18 +29,18 @@ import utils
 import modelSetting.net as net
 from evaluate import evaluate
 
-N_CLASSES = 14
+N_CLASSES = 1
 CLASS_NAMES = [ 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass', 'Nodule', 'Pneumonia',
                 'Pneumothorax', 'Consolidation', 'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
 # Training data and entry list
 #TRAIN_DATA_DIR = 'images/train'
 #TRAIN_IMAGE_LIST = 'train_list.txt'
-TRAIN_BATCH_SIZE = 5
+TRAIN_BATCH_SIZE = 11
 
 # Dev data and entry list
 #DEV_DATA_DIR = 'images/dev' 
 #DEV_IMAGE_LIST = 'dev_list.txt'
-DEV_BATCH_SIZE = 2
+DEV_BATCH_SIZE = 4
 use_gpu = torch.cuda.is_available()
 
 
@@ -87,6 +87,7 @@ def train(model, optimizer, train_loader, loss_fn, metrics):
             # forward
             outputs = model(inputs)
             
+            # conver the outputs and the labels to feed into BCE_loss function
             loss = loss_fn(outputs, labels)
 
             loss.backward()
@@ -192,13 +193,14 @@ if use_gpu:
     model = torch.nn.DataParallel(model)
 
 
-weights_file = os.path.join('/home/ubuntu/Data_Processed/labels/','train_list.txt')
-train_weight = torch.from_numpy(utils.get_loss_weights(weights_file)).float()
-print(train_weight)
-if use_gpu:
-   train_weight = train_weight.cuda()
+#weights_file = os.path.join('/home/ubuntu/Data_Processed/labels/','train_list.txt')
+#train_weight = torch.from_numpy(utils.get_loss_weights(weights_file)).float()
+#print(train_weight)
+#if use_gpu:
+#   train_weight = train_weight.cuda()
 
-train_loss = nn.MultiLabelSoftMarginLoss(weight = train_weight) 
+train_loss = nn.BCELoss()
+#train_loss = nn.MultiLabelSoftMarginLoss(weight = train_weight) 
 optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=5e-5)
 
 # Define the metrics
