@@ -192,9 +192,11 @@ if use_gpu:
     model = torch.nn.DataParallel(model)
 
 
-weights_file = os.path.join('labels/','train_list.txt')
+weights_file = os.path.join('/home/ubuntu/Data_Processed/labels/','train_list.txt')
 train_weight = torch.from_numpy(utils.get_loss_weights(weights_file)).float()
 print(train_weight)
+if use_gpu:
+   train_weight = train_weight.cuda()
 
 train_loss = nn.MultiLabelSoftMarginLoss(weight = train_weight) 
 optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=5e-5)
