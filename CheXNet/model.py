@@ -51,97 +51,130 @@ normalize = transforms.Normalize([0.485, 0.456, 0.406],
 logging.info("Loading the datasets...")
 
 # a general model definition, scheduler: learning rate decay    
-def train_model(model, optimizer, train_loader, loss_fn, metrics, num_epochs=5):
+def train(model, optimizer, train_loader, loss_fn, metrics):
     since = time.time()
-
-    best_model_wts = copy.deepcopy(model.state_dict())
-    best_acc = 0.0
 
     #scheduler.step()
     model.train(True)  # Set model to training mode
+
+    running_corrects = 0
+    running_accuracy = 0.0
+    loss_avg = utils.RunningAverage()
+
+    sample_size = 0;
+    one_but_zero = np.zeros(14)
+    zero_but_one = np.zeros(14)
+    # summary for all the mini batch of metrics and loss
+    summ = []
+
+    with tqdm(total=len(train_loader)) as t:
+        # Iterate over data.
+         for data in train_loader:
+            # get the inputs
+
+            inputs, labels = data
+
+            # wrap them in Variable
+            if use_gpu:
+                inputs = Variable(inputs.cuda())
+                labels = Variable(labels.cuda())
+            else:
+                inputs, labels = Variable(inputs), Variable(labels)
+
+            # zero the parameter gradients
+            optimizer.zero_grad()
+
+            # forward
+            outputs = model(inputs)
+            
+            loss = loss_fn(outputs, labels)
+
+            loss.backward()
+
+            # performs updates using calculated gradients
+            optimizer.step()
+
+            # cutoff by 0.5
+            preds = outputs >= 0.5
+            preds = preds.type(torch.FloatTensor)
+
+            # Here, we calculate the metrics and the loss for every batch
+            # and save them to the summ
+            # extract data from torch Variable, move to cpu, convert to
+            # numpy
+            preds_batch = preds.data.cpu().numpy()
+            labels_batch = labels.data.cpu().numpy()
+            sample_size += preds_batch.shape[0]
+
+            # Compute all metrics in this batch
+            summary_batch = {metric:metrics[metric](preds_batch,labels_batch) for metric in metrics}
+            summary_batch['loss'] = loss.data[0]
+            summ.append(summary_batch)
+
+            truth_one_but_zero, truth_zero_but_one = each_label(preds_batch, labels_batch)
+            one_but_zero += truth_one_but_zero
+            zero_but_one += truth_zero_but_one
+            # ToDo, we can use the above summary_batch instead of calculate
+            # running_loss for every batch
+            loss_avg.update(loss.data[0])
+
+            t.set_postfix(loss='{:05.3f}'.format(loss_avg()))
+            t.update()
+
+        # Here, when we update all the batch in a certain epoch, we will calculate
+        # the mean metrics for this epoch
+        # compute mean of all metrics in summary
+    metrics_mean = {metric:np.mean([x[metric] for x in summ]) for metric in summ[0]}
+    metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in metrics_mean.items())
+    
+    logging.info("- Train metrics: " + metrics_string)
+
+    # if metrics_mean['accuracy'] > best_acc:
+    #     best_acc = metrics_mean['accuracy']
+    #     best_model_wts = copy.deepcopy(model.state_dict())
+    
+    print("- Train metrics: " + metrics_string)
+    print(np.array_str(one_but_zero))
+    print(np.array_str(zero_but_one))
+
+
+    print("\n")
+    # evalute the model in the val_dataset
+    print("Metric Report for the dev set") 
+    evaluate(model, criterion, dev_dl, metrics, use_gpu)
+
+    # print('Best training Acc: {:4f}'.format(best_acc))
+    # time_elapsed = time.time() - since
+    # print('Training complete in {:.0f}m {:.0f}s'.format(
+    #     time_elapsed // 60, time_elapsed % 60))
+
+    # load best model weights
+    # model.load_state_dict(best_model_wts)
+    return metrics_mean['accuracy']
+
+def each_label(outputs, label):
+    prediction = outputs - label
+    truth_zero_but_one = np.count_nonzero(prediction == 1, axis = 0)
+    truth_one_but_zero = np.count_nonzero(prediction == -1, axis = 0)
+    return truth_one_but_zero, truth_zero_but_one
+
+
+def train_model(model, optimizer, train_loader, loss_fn, metrics, num_epochs):
+    best_model_wts = copy.deepcopy(model.state_dict())
+    best_acc = 0.0
 
     for epoch in range(num_epochs):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
 
-        #running_loss = 0.0
-        running_corrects = 0
-        running_accuracy = 0.0
-        loss_avg = utils.RunningAverage()
-        # summary for all the mini batch of metrics and loss
-        summ = []
-        #print(len(train_loader))
-        with tqdm(total=len(train_loader)) as t:
-            # Iterate over data.
-             for data in train_loader:
-                # get the inputs
+        accuracy = train(model, optimizer, train_loader, loss_fn, metrics)
 
-                inputs, labels = data
-
-                # wrap them in Variable
-                if use_gpu:
-                    inputs = Variable(inputs.cuda())
-                    labels = Variable(labels.cuda())
-                else:
-                    inputs, labels = Variable(inputs), Variable(labels)
-
-                # zero the parameter gradients
-                optimizer.zero_grad()
-
-                # forward
-                outputs = model(inputs)
-                
-                loss = loss_fn(outputs, labels)
- 
-                loss.backward()
-
-                # performs updates using calculated gradients
-                optimizer.step()
-
-                # cutoff by 0.5
-                preds = outputs >= 0.5
-                preds = preds.type(torch.FloatTensor)
-
-                # Here, we calculate the metrics and the loss for every batch
-                # and save them to the summ
-                # extract data from torch Variable, move to cpu, convert to
-                # numpy
-                preds_batch = preds.data.cpu().numpy()
-                labels_batch = labels.data.cpu().numpy()
-
-                # Compute all metrics in this batch
-                summary_batch = {metric:metrics[metric](preds_batch,labels_batch) for metric in metrics}
-                summary_batch['loss'] = loss.data[0]
-                summ.append(summary_batch)
-
-                # ToDo, we can use the above summary_batch instead of calculate
-                # running_loss for every batch
-                loss_avg.update(loss.data[0])
-
-                t.set_postfix(loss='{:05.3f}'.format(loss_avg()))
-                t.update()
-
-        # Here, when we update all the batch in a certain epoch, we will calculate
-        # the mean metrics for this epoch
-        # compute mean of all metrics in summary
-        metrics_mean = {metric:np.mean([x[metric] for x in summ]) for metric in summ[0]}
-        metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in metrics_mean.items())
-        logging.info("- Train metrics: " + metrics_string)
-
-        if metrics_mean['accuracy'] > best_acc:
-            best_acc = metrics_mean['accuracy']
+        if accuracy > best_acc:
+            best_acc = accuracy
             best_model_wts = copy.deepcopy(model.state_dict())
-        
-        print("- Train metrics: " + metrics_string)
 
-    print('Best training Acc: {:4f}'.format(best_acc))
-    time_elapsed = time.time() - since
-    print('Training complete in {:.0f}m {:.0f}s'.format(
-        time_elapsed // 60, time_elapsed % 60))
-
-    # load best model weights
     model.load_state_dict(best_model_wts)
-    return model   
+
 
 # fetch dataloaders
 dataloaders = read_data.fetch_dataloader(['train', 'dev'], 'images', 'labels')
@@ -163,11 +196,8 @@ metrics = net.metrics
 #exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 
 # Train the model in the training set
-model_conv = train_model(model, optimizer, train_dl, criterion, metrics, num_epochs = 3)
-
+train_model(model, optimizer, train_dl, criterion, metrics, num_epochs = 3)
 utils.save_checkpoint({'state_dict': model.state_dict()}, is_best=None, checkpoint='trial1')
 #utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
 
-# evalute the model in the val_dataset
-print("Metric Report for the dev set") 
-dev_metrics = evaluate(model_conv, criterion, dev_dl, metrics, use_gpu)
+

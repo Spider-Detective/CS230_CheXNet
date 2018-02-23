@@ -40,7 +40,10 @@ def evaluate(model, loss_fn, dataloader, metrics, use_gpu):
 
     # set model to evaluation mode
     model.eval()
+    sample_size = 0
 
+    one_but_zero = np.zeros(14)
+    zero_but_one = np.zeros(14)
     # summary for current eval loop
     summ = []
 
@@ -65,6 +68,12 @@ def evaluate(model, loss_fn, dataloader, metrics, use_gpu):
         # extract data from torch Variable, move to cpu, convert to numpy arrays
         output_batch = output_batch.data.cpu().numpy()
         labels_batch = labels_batch.data.cpu().numpy()
+        sample_size += output_batch.shape[0]
+
+        truth_one_but_zero, truth_zero_but_one = each_label(output_batch, labels_batch)
+        one_but_zero += truth_one_but_zero
+        zero_but_one += truth_zero_but_one
+
 
         # compute all metrics on this batch
         summary_batch = {metric: metrics[metric](output_batch, labels_batch)
@@ -78,9 +87,20 @@ def evaluate(model, loss_fn, dataloader, metrics, use_gpu):
     logging.info("- Eval metrics : " + metrics_string)
     # Here is just the screen print out for debug
     print("- Eval metrics : " + metrics_string)
+
+
+    print(np.array_str(one_but_zero))
+    print(np.array_str(zero_but_one))
     return metrics_mean
 
 # ToDo, we can add the separate evaluate part later.
+
+def each_label(outputs, label):
+    sample_size = outputs.shape[0]
+    prediction = outputs - label
+    truth_zero_but_one = np.count_nonzero(prediction == 1, axis = 0)
+    truth_one_but_zero = np.count_nonzero(prediction == -1, axis = 0)
+    return truth_one_but_zero, truth_zero_but_one
 
 
 if __name__ == '__main__':
