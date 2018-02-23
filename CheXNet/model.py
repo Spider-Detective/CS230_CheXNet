@@ -141,7 +141,7 @@ def train(model, optimizer, train_loader, loss_fn, metrics):
     print("\n")
     # evalute the model in the val_dataset
     print("Metric Report for the dev set") 
-    evaluate(model, criterion, dev_dl, metrics, use_gpu)
+    evaluate(model, train_loss, dev_dl, metrics, use_gpu)
 
     # print('Best training Acc: {:4f}'.format(best_acc))
     # time_elapsed = time.time() - since
@@ -190,7 +190,13 @@ model = net.DenseNet121(N_CLASSES)
 if use_gpu:
     model = net.DenseNet121(N_CLASSES).cuda()
     model = torch.nn.DataParallel(model)
-criterion = nn.MultiLabelSoftMarginLoss() 
+
+
+weights_file = os.path.join('labels/','train_list.txt')
+train_weight = torch.from_numpy(1 - utils.get_loss_weights(weights_file)).float()
+print(train_weight)
+
+train_loss = nn.MultiLabelSoftMarginLoss(weight = train_weight) 
 optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=5e-5)
 
 # Define the metrics
@@ -200,7 +206,7 @@ metrics = net.metrics
 #exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 
 # Train the model in the training set
-train_model(model, optimizer, train_dl, criterion, metrics, num_epochs = 3)
+train_model(model, optimizer, train_dl, train_loss, metrics, num_epochs = 3)
 utils.save_checkpoint({'state_dict': model.state_dict()}, is_best=None, checkpoint='trial1')
 #utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
 

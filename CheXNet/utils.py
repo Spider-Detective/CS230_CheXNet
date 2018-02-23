@@ -2,7 +2,7 @@ import json
 import logging
 import os
 import shutil
-
+import numpy as np
 import torch
 
 class Params():
@@ -101,6 +101,18 @@ def save_dict_to_json(d, json_path):
         d = {k: float(v) for k, v in d.items()}
         json.dump(d, f, indent=4)
 
+def get_loss_weights(filename):
+    f = open(filename,'r')
+    lines = f.readlines()
+    sample_size = len(lines)
+    stats = np.asarray(lines[0].split()[1:]).astype(float)
+    for i in range(1,sample_size):
+        a = np.asarray(lines[i].split()[1:]).astype(float)
+        stats = np.vstack((stats,a))
+        
+    weight_vector = np.round(np.count_nonzero(stats, axis = 0) / sample_size, 2)
+
+    return weight_vector
 
 def save_checkpoint(state, is_best, checkpoint):
     """Saves model and training parameters at checkpoint + 'last.pth.tar'. If is_best==True, also saves
