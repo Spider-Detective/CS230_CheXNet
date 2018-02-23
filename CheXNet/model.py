@@ -193,7 +193,7 @@ if use_gpu:
 
 
 weights_file = os.path.join('labels/','train_list.txt')
-train_weight = torch.from_numpy(1 - utils.get_loss_weights(weights_file)).float()
+train_weight = torch.from_numpy(utils.get_loss_weights(weights_file)).float()
 print(train_weight)
 
 train_loss = nn.MultiLabelSoftMarginLoss(weight = train_weight) 
