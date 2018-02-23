@@ -177,7 +177,11 @@ def train_model(model, optimizer, train_loader, loss_fn, metrics, num_epochs):
 
 
 # fetch dataloaders
-dataloaders = read_data.fetch_dataloader(['train', 'dev'], 'images', 'labels')
+if (not use_gpu):
+   dataloaders = read_data.fetch_dataloader(['train', 'dev'], 'images', 'labels')
+else:
+   dataloaders = read_data.fetch_dataloader(['train', 'dev'], '/home/ubuntu/Data_Processed/images', \
+                                           '/home/ubuntu/Data_Processed/labels')
 train_dl = dataloaders['train']
 dev_dl = dataloaders['dev']
 

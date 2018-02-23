@@ -1,29 +1,7 @@
-"""Two tasks:
-    1. Split the CheXNet dataset into train/dev/test and resize images to 224x224.
-    2. Write the CSV file into labels of size 14x1 according to every image name
-
-The final CheXNet dataset is in the following format:
-    images/
-        train/
-            00000001_000.png
-            ...
-        dev/
-            00000003_012.png
-            ...
-        test/
-            00000213_010.png
-            ...
-
-Original images have size (1024, 1024).
-Resizing to (224, 224) reduces the dataset size, and loading smaller images
-makes training faster. DenseNet121 also requires the input images to be of
-this size.
-
-"""
-
 import argparse
 import random
 import os
+import torch
 
 import pandas as pd
 from skimage import io, transform
@@ -37,9 +15,14 @@ CLASS_NAMES = [ 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass
                     'Pneumothorax', 'Consolidation', 'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--data_dir', default='ChestX-ray14/images', help="Directory with the X-ray image dataset")
-parser.add_argument('--output_image_dir', default='images/', help="Where to write the new images")
-parser.add_argument('--output_label_dir', default='labels/', help="Where to write the new labels")
+if (not torch.cuda.is_available()):
+   parser.add_argument('--data_dir', default='ChestX-ray14/images', help="Directory with the X-ray image dataset")
+   parser.add_argument('--output_image_dir', default='images/', help="Where to write the new images")
+   parser.add_argument('--output_label_dir', default='labels/', help="Where to write the new labels")
+else:
+   parser.add_argument('--data_dir', default='/home/ubuntu/Dataset/images5', help="Directory with the X-ray image dataset")
+   parser.add_argument('--output_image_dir', default='/home/ubuntu/Data_Processed/images/', help="Where to write the new images")
+   parser.add_argument('--output_label_dir', default='/home/ubuntu/Data_Processed/labels/', help="Where to write the new labels")
 
 def split_images(filenames, perc1, perc2, perc3):
     random.seed(230)
