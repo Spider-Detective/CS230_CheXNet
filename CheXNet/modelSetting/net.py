@@ -98,3 +98,10 @@ metrics = {
     # 'recall':recall,
     # 'f1':f1
 }
+
+eval_metrics = {
+    'accuracy': accuracy,
+    'total_accuracy': total_accuracy,
+    #'ROC_AUC': ROC_AUC,
+    # 'precision':precision,
+}

@@ -30,8 +30,8 @@ eval_transformer = transforms.Compose([
 #DEV_DATA_DIR = 'images/dev' 
 #DEV_IMAGE_LIST = 'dev_list.txt'
 
-TRAIN_BATCH_SIZE = 11
-
+TRAIN_BATCH_SIZE = 32
+DEV_BATCH_SIZE = 1
 class ChestXrayDataSet(Dataset):
     def __init__(self, image_file, label_file, transform=None):
         """
@@ -104,9 +104,10 @@ def fetch_dataloader(types, image_dir, label_dir):
             # use the train_transformer if training data, else use eval_transformer without random flip
             if split == 'train':
                 ds = ChestXrayDataSet(image_file=image_path, label_file=label_path, transform=train_transformer)
+                dataloaders[split] = DataLoader(ds, batch_size=TRAIN_BATCH_SIZE, shuffle=False, num_workers=8, pin_memory=False)
             else:
                 ds = ChestXrayDataSet(image_file=image_path, label_file=label_path, transform=eval_transformer)
-            dataloaders[split] = DataLoader(ds, batch_size=TRAIN_BATCH_SIZE, shuffle=False, num_workers=8, pin_memory=False)
+                dataloaders[split] = DataLoader(ds, batch_size=DEV_BATCH_SIZE, shuffle=False, num_workers=8, pin_memory=False)
 
     return dataloaders
 

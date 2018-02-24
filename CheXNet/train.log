@@ -1,0 +1,150 @@
+2018-02-24 01:36:04,420:INFO: Loading the datasets...
+2018-02-24 01:39:44,344:INFO: Loading the datasets...
+2018-02-24 01:40:14,512:INFO: Loading the datasets...
+2018-02-24 01:40:17,173:INFO: Epoch 0/2
+2018-02-24 01:40:17,173:INFO: ----------
+2018-02-24 01:42:53,899:INFO: Loading the datasets...
+2018-02-24 01:42:56,558:INFO: Epoch 0/2
+2018-02-24 01:42:56,559:INFO: ----------
+2018-02-24 01:44:19,866:INFO: - Train metrics: accuracy: 0.593 ; total_accuracy: 0.593 ; ROC_AUC: 0.590 ; loss: 0.676
+2018-02-24 01:44:19,866:INFO: - Train metrics: accuracy: 0.593 ; total_accuracy: 0.593 ; ROC_AUC: 0.590 ; loss: 0.676
+2018-02-24 01:44:19,866:INFO: 
+
+2018-02-24 01:44:19,887:INFO: Epoch 1/2
+2018-02-24 01:44:19,888:INFO: ----------
+2018-02-24 01:45:42,951:INFO: - Train metrics: accuracy: 0.622 ; total_accuracy: 0.622 ; ROC_AUC: 0.620 ; loss: 0.662
+2018-02-24 01:45:42,951:INFO: - Train metrics: accuracy: 0.622 ; total_accuracy: 0.622 ; ROC_AUC: 0.620 ; loss: 0.662
+2018-02-24 01:45:42,951:INFO: 
+
+2018-02-24 01:45:42,974:INFO: Epoch 2/2
+2018-02-24 01:45:42,975:INFO: ----------
+2018-02-24 01:47:06,435:INFO: - Train metrics: accuracy: 0.622 ; total_accuracy: 0.622 ; ROC_AUC: 0.621 ; loss: 0.659
+2018-02-24 01:47:06,436:INFO: - Train metrics: accuracy: 0.622 ; total_accuracy: 0.622 ; ROC_AUC: 0.621 ; loss: 0.659
+2018-02-24 01:47:06,436:INFO: 
+
+2018-02-24 01:47:06,628:INFO: Metric Report for the dev set
+2018-02-24 01:49:42,086:INFO: Loading the datasets...
+2018-02-24 01:49:44,756:INFO: Epoch 0/0
+2018-02-24 01:49:44,756:INFO: ----------
+2018-02-24 01:51:08,105:INFO: - Train metrics: accuracy: 0.577 ; total_accuracy: 0.577 ; ROC_AUC: 0.571 ; loss: 0.682
+2018-02-24 01:51:08,105:INFO: - Train metrics: accuracy: 0.577 ; total_accuracy: 0.577 ; ROC_AUC: 0.571 ; loss: 0.682
+2018-02-24 01:51:08,105:INFO: 
+
+2018-02-24 01:51:08,138:INFO: Metric Report for the dev set
+2018-02-24 01:52:31,796:INFO: Loading the datasets...
+2018-02-24 01:52:34,453:INFO: Metric Report for the dev set
+2018-02-24 01:56:10,859:INFO: Loading the datasets...
+2018-02-24 01:56:13,490:INFO: Metric Report for the dev set
+2018-02-24 01:57:47,251:INFO: Loading the datasets...
+2018-02-24 01:57:49,905:INFO: Metric Report for the dev set
+2018-02-24 01:58:36,406:INFO: Loading the datasets...
+2018-02-24 01:58:39,044:INFO: Metric Report for the dev set
+2018-02-24 02:10:33,537:INFO: Loading the datasets...
+2018-02-24 02:10:36,182:INFO: Metric Report for the dev set
+2018-02-24 02:12:40,124:INFO: Loading the datasets...
+2018-02-24 02:12:42,746:INFO: Metric Report for the dev set
+2018-02-24 02:14:15,762:INFO: Loading the datasets...
+2018-02-24 02:14:18,407:INFO: Metric Report for the dev set
+2018-02-24 02:22:57,777:INFO: Loading the datasets...
+2018-02-24 02:23:00,411:INFO: Metric Report for the dev set
+2018-02-24 02:24:08,442:INFO: Loading the datasets...
+2018-02-24 02:24:11,067:INFO: Metric Report for the dev set
+2018-02-24 02:26:19,821:INFO: Loading the datasets...
+2018-02-24 02:26:22,451:INFO: Metric Report for the dev set
+2018-02-24 02:30:02,623:INFO: Loading the datasets...
+2018-02-24 02:30:05,240:INFO: Metric Report for the dev set
+2018-02-24 02:30:34,802:INFO: - Eval metrics : accuracy: 0.428 ; total_accuracy: 0.428 ; loss: 0.757
+2018-02-24 02:30:34,829:INFO: Epoch 0/0
+2018-02-24 02:30:34,829:INFO: ----------
+2018-02-24 02:32:01,387:INFO: Loading the datasets...
+2018-02-24 02:32:04,037:INFO: Metric Report for the dev set
+2018-02-24 02:33:37,849:INFO: Loading the datasets...
+2018-02-24 02:33:40,498:INFO: Metric Report for the dev set
+2018-02-24 02:34:09,902:INFO: - Eval metrics : accuracy: 0.563 ; total_accuracy: 0.563 ; loss: 0.699
+2018-02-24 02:34:09,931:INFO: Epoch 0/0
+2018-02-24 02:34:09,931:INFO: ----------
+2018-02-24 02:34:51,575:INFO: Loading the datasets...
+2018-02-24 02:34:54,214:INFO: Epoch 0/2
+2018-02-24 02:34:54,214:INFO: ----------
+2018-02-24 02:36:17,375:INFO: - Train metrics: accuracy: 0.588 ; total_accuracy: 0.588 ; loss: 0.682
+2018-02-24 02:36:17,375:INFO: - Train metrics: accuracy: 0.588 ; total_accuracy: 0.588 ; loss: 0.682
+2018-02-24 02:36:17,375:INFO: 
+
+2018-02-24 02:39:44,346:INFO: Loading the datasets...
+2018-02-24 02:39:47,007:INFO: Epoch 0/2
+2018-02-24 02:39:47,007:INFO: ----------
+2018-02-24 02:41:10,020:INFO: - Train metrics: accuracy: 0.604 ; total_accuracy: 0.604 ; ROC_AUC: 0.601 ; loss: 0.673
+2018-02-24 02:41:10,020:INFO: - Train metrics: accuracy: 0.604 ; total_accuracy: 0.604 ; ROC_AUC: 0.601 ; loss: 0.673
+2018-02-24 02:41:10,020:INFO: 
+
+2018-02-24 02:41:10,044:INFO: Epoch 1/2
+2018-02-24 02:41:10,044:INFO: ----------
+2018-02-24 02:42:32,887:INFO: - Train metrics: accuracy: 0.594 ; total_accuracy: 0.594 ; ROC_AUC: 0.589 ; loss: 0.675
+2018-02-24 02:42:32,888:INFO: - Train metrics: accuracy: 0.594 ; total_accuracy: 0.594 ; ROC_AUC: 0.589 ; loss: 0.675
+2018-02-24 02:42:32,888:INFO: 
+
+2018-02-24 02:42:32,889:INFO: Epoch 2/2
+2018-02-24 02:42:32,889:INFO: ----------
+2018-02-24 02:46:16,269:INFO: Loading the datasets...
+2018-02-24 02:46:18,932:INFO: Epoch 0/2
+2018-02-24 02:46:18,933:INFO: ----------
+2018-02-24 02:47:42,015:INFO: - Train metrics: accuracy: 0.579 ; total_accuracy: 0.579 ; ROC_AUC: 0.577 ; loss: 0.692
+2018-02-24 02:47:42,015:INFO: - Train metrics: accuracy: 0.579 ; total_accuracy: 0.579 ; ROC_AUC: 0.577 ; loss: 0.692
+2018-02-24 02:47:42,015:INFO: 
+
+2018-02-24 02:47:42,038:INFO: Epoch 1/2
+2018-02-24 02:47:42,038:INFO: ----------
+2018-02-24 02:55:27,178:INFO: Loading the datasets...
+2018-02-24 02:55:29,843:INFO: Epoch 0/2
+2018-02-24 02:55:29,843:INFO: ----------
+2018-02-24 02:55:36,326:INFO: Loading the datasets...
+2018-02-24 02:55:39,002:INFO: Epoch 0/2
+2018-02-24 02:55:39,002:INFO: ----------
+2018-02-24 02:57:02,077:INFO: - Train metrics: accuracy: 0.602 ; total_accuracy: 0.602 ; ROC_AUC: 0.597 ; loss: 0.676
+2018-02-24 02:57:02,078:INFO: - Train metrics: accuracy: 0.602 ; total_accuracy: 0.602 ; ROC_AUC: 0.597 ; loss: 0.676
+2018-02-24 02:57:02,078:INFO: 
+
+2018-02-24 02:57:02,092:INFO: Epoch 1/2
+2018-02-24 02:57:02,092:INFO: ----------
+2018-02-24 02:59:10,675:INFO: Loading the datasets...
+2018-02-24 02:59:13,326:INFO: Epoch 0/2
+2018-02-24 02:59:13,326:INFO: ----------
+2018-02-24 03:00:36,704:INFO: - Train metrics: accuracy: 0.592 ; total_accuracy: 0.592 ; ROC_AUC: 0.592 ; loss: 0.681
+2018-02-24 03:00:36,704:INFO: - Train metrics: accuracy: 0.592 ; total_accuracy: 0.592 ; ROC_AUC: 0.592 ; loss: 0.681
+2018-02-24 03:00:36,704:INFO: 
+
+2018-02-24 03:00:36,727:INFO: Epoch 1/2
+2018-02-24 03:00:36,728:INFO: ----------
+2018-02-24 03:01:59,771:INFO: - Train metrics: accuracy: 0.611 ; total_accuracy: 0.611 ; ROC_AUC: 0.609 ; loss: 0.668
+2018-02-24 03:01:59,771:INFO: - Train metrics: accuracy: 0.611 ; total_accuracy: 0.611 ; ROC_AUC: 0.609 ; loss: 0.668
+2018-02-24 03:01:59,771:INFO: 
+
+2018-02-24 03:01:59,795:INFO: Epoch 2/2
+2018-02-24 03:01:59,796:INFO: ----------
+2018-02-24 03:03:22,551:INFO: - Train metrics: accuracy: 0.621 ; total_accuracy: 0.621 ; ROC_AUC: 0.622 ; loss: 0.659
+2018-02-24 03:03:22,551:INFO: - Train metrics: accuracy: 0.621 ; total_accuracy: 0.621 ; ROC_AUC: 0.622 ; loss: 0.659
+2018-02-24 03:03:22,552:INFO: 
+
+2018-02-24 03:03:22,584:INFO: Metric Report for the dev set
+2018-02-24 03:03:51,353:INFO: - Eval metrics : accuracy: 0.657 ; total_accuracy: 0.657 ; loss: 0.625
+2018-02-24 03:09:25,660:INFO: Loading the datasets...
+2018-02-24 03:09:28,360:INFO: Epoch 0/2
+2018-02-24 03:09:28,360:INFO: ----------
+2018-02-24 03:12:14,305:INFO: - Train metrics: accuracy: 0.615 ; total_accuracy: 0.615 ; ROC_AUC: 0.614 ; loss: 0.661
+2018-02-24 03:12:14,305:INFO: - Train metrics: accuracy: 0.615 ; total_accuracy: 0.615 ; ROC_AUC: 0.614 ; loss: 0.661
+2018-02-24 03:12:14,305:INFO: 
+
+2018-02-24 03:12:14,352:INFO: Epoch 1/2
+2018-02-24 03:12:14,352:INFO: ----------
+2018-02-24 03:14:59,681:INFO: - Train metrics: accuracy: 0.655 ; total_accuracy: 0.655 ; ROC_AUC: 0.656 ; loss: 0.631
+2018-02-24 03:14:59,681:INFO: - Train metrics: accuracy: 0.655 ; total_accuracy: 0.655 ; ROC_AUC: 0.656 ; loss: 0.631
+2018-02-24 03:14:59,681:INFO: 
+
+2018-02-24 03:14:59,744:INFO: Epoch 2/2
+2018-02-24 03:14:59,744:INFO: ----------
+2018-02-24 03:17:45,174:INFO: - Train metrics: accuracy: 0.660 ; total_accuracy: 0.660 ; ROC_AUC: 0.661 ; loss: 0.626
+2018-02-24 03:17:45,174:INFO: - Train metrics: accuracy: 0.660 ; total_accuracy: 0.660 ; ROC_AUC: 0.661 ; loss: 0.626
+2018-02-24 03:17:45,175:INFO: 
+
+2018-02-24 03:17:45,224:INFO: Metric Report for the dev set
+2018-02-24 03:18:42,626:INFO: - Eval metrics : accuracy: 0.649 ; total_accuracy: 0.649 ; loss: 0.633

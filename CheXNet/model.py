@@ -47,8 +47,6 @@ use_gpu = torch.cuda.is_available()
 normalize = transforms.Normalize([0.485, 0.456, 0.406],
                                  [0.229, 0.224, 0.225])
 
-# Create the input data pipeline
-logging.info("Loading the datasets...")
 
 # a general model definition, scheduler: learning rate decay    
 def train(model, optimizer, train_loader, loss_fn, metrics):
@@ -134,15 +132,12 @@ def train(model, optimizer, train_loader, loss_fn, metrics):
     #     best_acc = metrics_mean['accuracy']
     #     best_model_wts = copy.deepcopy(model.state_dict())
     
-    print("- Train metrics: " + metrics_string)
-    print(np.array_str(one_but_zero))
-    print(np.array_str(zero_but_one))
+    logging.info("- Train metrics: " + metrics_string)
+    #print(np.array_str(one_but_zero))
+    #print(np.array_str(zero_but_one))
 
 
-    print("\n")
-    # evalute the model in the val_dataset
-    print("Metric Report for the dev set") 
-    evaluate(model, train_loss, dev_dl, metrics, use_gpu)
+    logging.info("\n")
 
     # print('Best training Acc: {:4f}'.format(best_acc))
     # time_elapsed = time.time() - since
@@ -151,7 +146,7 @@ def train(model, optimizer, train_loader, loss_fn, metrics):
 
     # load best model weights
     # model.load_state_dict(best_model_wts)
-    return metrics_mean['accuracy']
+    return  metrics_mean['ROC_AUC']
 
 def each_label(outputs, label):
     prediction = outputs - label
@@ -162,19 +157,29 @@ def each_label(outputs, label):
 
 def train_model(model, optimizer, train_loader, loss_fn, metrics, num_epochs):
     best_model_wts = copy.deepcopy(model.state_dict())
-    best_acc = 0.0
+    best_AUC = 0.0
 
     for epoch in range(num_epochs):
-        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
-        print('-' * 10)
+        print('start epco {}'.format(epoch))        
+        logging.info('Epoch {}/{}'.format(epoch, num_epochs - 1))
+        logging.info('-' * 10)
 
-        accuracy = train(model, optimizer, train_loader, loss_fn, metrics)
+        ROC_AUC = train(model, optimizer, train_loader, loss_fn, metrics)
+        print(ROC_AUC)
 
-        if accuracy > best_acc:
-            best_acc = accuracy
+        if ROC_AUC > best_AUC:
+            best_AUC = ROC_AUC
+            print("update model for epoc")
             best_model_wts = copy.deepcopy(model.state_dict())
 
     model.load_state_dict(best_model_wts)
+
+
+
+# set the logger
+utils.set_logger(os.path.join(os.getcwd(),'train.log'))
+# Create the input data pipeline
+logging.info("Loading the datasets...")
 
 
 # fetch dataloaders
@@ -205,13 +210,18 @@ optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=5e-5)
 
 # Define the metrics
 metrics = net.metrics
-
+eval_metrics = net.eval_metrics
 # Decay LR by a factor of 0.1 every 7 epochs
 #exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 
+
 # Train the model in the training set
-train_model(model, optimizer, train_dl, train_loss, metrics, num_epochs = 3)
-utils.save_checkpoint({'state_dict': model.state_dict()}, is_best=None, checkpoint='trial1')
+train_model(model, optimizer, train_dl, train_loss, metrics, num_epochs = 3 )
+
+#utils.save_checkpoint({'state_dict': model.state_dict()}, is_best=None, checkpoint='trial1')
 #utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
 
 
+# evalute the model in the val_dataset
+logging.info("Metric Report for the dev set") 
+evaluate(model, train_loss, dev_dl, eval_metrics, use_gpu)
