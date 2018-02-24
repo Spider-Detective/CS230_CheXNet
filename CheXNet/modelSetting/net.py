@@ -93,7 +93,7 @@ metrics = {
     # could add more metrics such as accuracy for each token type
     'accuracy': accuracy,
     'total_accuracy': total_accuracy,
-    #'ROC_AUC': ROC_AUC,
+    'ROC_AUC': ROC_AUC,
     # 'precision':precision,
     # 'recall':recall,
     # 'f1':f1
