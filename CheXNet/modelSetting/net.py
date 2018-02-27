@@ -56,11 +56,17 @@ def loss_fn(outputs, labels):
     num_examples = outputs.size()[0]
     return -torch.sum(outputs[range(num_examples), labels])/num_examples
 
+def compare_pred_and_label(outputs, labels):
+    '''compare the prediciton with true labels, and return the number of false positives and negatives'''
+    difference = outputs - labels
+    false_positive = np.count_nonzero(difference == 1, axis = 0)  # 1 - 0 
+    false_negative = np.count_nonzero(difference == -1, axis = 0) # 0 - 1
+    return false_positive, false_negative
 
 # Here is our customized
-def accuracy(outputs, label):
-    np.savetxt('output.csv', outputs - label, delimiter = " ", fmt = '%1d')
-    return (1 - np.count_nonzero(np.linalg.norm(outputs - label, axis = 1)) / outputs.shape[0]) 
+def accuracy(outputs, labels):
+    np.savetxt('output.csv', outputs - labels, delimiter = " ", fmt = '%1d')
+    return (1 - np.count_nonzero(np.linalg.norm(outputs - labels, axis = 1)) / outputs.shape[0]) 
 
 def total_accuracy(outputs, labels):
     """

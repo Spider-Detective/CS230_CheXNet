@@ -76,7 +76,7 @@ def write_file_to_list(filename, listfile, datafile):
     listfile.write('\n')
 
 def select_datasets(scope, directory):
-''' select and combine data from given scope, return the file list'''
+    ''' select and combine data from given scope, return the file list'''
     datafolders = next(os.walk(directory))[1] # 0: current dir, 1: all subdirs, 2: all subfiles
     filenames = []
     for i in scope: # target dataset number, or can use other ranges

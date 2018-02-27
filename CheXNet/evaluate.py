@@ -25,7 +25,7 @@ parser.add_argument('--model_dir', default='experiments/base_model', help="Direc
 parser.add_argument('--restore_file', default='best', help="name of the file in --model_dir \
                      containing weights to load")
 '''
-
+N_CLASSES = 14
 def evaluate(model, loss_fn, dataloader, metrics, use_gpu):
     """Evaluate the model on `num_steps` batches.
 
@@ -40,10 +40,9 @@ def evaluate(model, loss_fn, dataloader, metrics, use_gpu):
 
     # set model to evaluation mode
     model.eval()
-    sample_size = 0
 
-    one_but_zero = np.zeros(14)
-    zero_but_one = np.zeros(14)
+    false_positive = [0] * N_CLASSES
+    false_negative = [0] * N_CLASSES
     # summary for current eval loop
     summ = []
 
@@ -58,25 +57,25 @@ def evaluate(model, loss_fn, dataloader, metrics, use_gpu):
         data_batch, labels_batch = Variable(data_batch), Variable(labels_batch)
         
         # compute model output
-        output_batch = model(data_batch)
-        loss = loss_fn(output_batch, labels_batch)
+        preds_batch = model(data_batch)
+        loss = loss_fn(preds_batch, labels_batch)
 
         # converse output probability to prediction data
-        output_batch = output_batch >= 0.5
-        output_batch = output_batch.type(torch.FloatTensor)
+        preds_batch = preds_batch >= 0.5
+        preds_batch = preds_batch.type(torch.FloatTensor)
 
         # extract data from torch Variable, move to cpu, convert to numpy arrays
-        output_batch = output_batch.data.cpu().numpy()
+        preds_batch = preds_batch.data.cpu().numpy()
         labels_batch = labels_batch.data.cpu().numpy()
-        sample_size += output_batch.shape[0]
+        #sample_size += output_batch.shape[0]
 
-        truth_one_but_zero, truth_zero_but_one = each_label(output_batch, labels_batch)
-        one_but_zero += truth_one_but_zero
-        zero_but_one += truth_zero_but_one
+        false_positive_batch, false_negative_batch = net.compare_pred_and_label(preds_batch, labels_batch)
+        false_positive += false_positive_batch
+        false_negative += false_negative_batch
 
 
         # compute all metrics on this batch
-        summary_batch = {metric: metrics[metric](output_batch, labels_batch)
+        summary_batch = {metric: metrics[metric](preds_batch, labels_batch)
                          for metric in metrics}
         summary_batch['loss'] = loss.data[0]
         summ.append(summary_batch)
@@ -89,18 +88,9 @@ def evaluate(model, loss_fn, dataloader, metrics, use_gpu):
     print("- Eval metrics : " + metrics_string)
 
 
-    print(np.array_str(one_but_zero))
-    print(np.array_str(zero_but_one))
+    print(np.array_str(false_positive))
+    print(np.array_str(false_negative))
     return metrics_mean
-
-# ToDo, we can add the separate evaluate part later.
-
-def each_label(outputs, label):
-    sample_size = outputs.shape[0]
-    prediction = outputs - label
-    truth_zero_but_one = np.count_nonzero(prediction == 1, axis = 0)
-    truth_one_but_zero = np.count_nonzero(prediction == -1, axis = 0)
-    return truth_one_but_zero, truth_zero_but_one
 
 
 if __name__ == '__main__':
@@ -139,7 +129,7 @@ if __name__ == '__main__':
     #loss_fn = net.loss_fn
     loss_fn = nn.MultiLabelSoftMarginLoss() 
     metrics = net.metrics
-    N_CLASSES = 14
+
     dev_model = net.DenseNet121(N_CLASSES)
     utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
 
