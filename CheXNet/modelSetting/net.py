@@ -28,7 +28,7 @@ class DenseNet121(nn.Module):
         num_ftrs = self.densenet121.classifier.in_features
         self.densenet121.classifier = nn.Sequential(
             nn.Linear(num_ftrs, out_size),
-            nn.Sigmoid()
+            #nn.Sigmoid()
         )
 
     def forward(self, x):
