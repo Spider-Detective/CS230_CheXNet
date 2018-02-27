@@ -13,16 +13,18 @@ from tqdm import tqdm
 SIZE = 224
 CLASS_NAMES = [ 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass', 'Nodule', 'Pneumonia',
                     'Pneumothorax', 'Consolidation', 'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
+use_gpu = torch.cuda.is_available()
 
 parser = argparse.ArgumentParser()
-if (not torch.cuda.is_available()):
-   parser.add_argument('--data_dir', default='ChestX-ray14/images', help="Directory with the X-ray image dataset")
-   parser.add_argument('--output_image_dir', default='images/', help="Where to write the new images")
-   parser.add_argument('--output_label_dir', default='labels/', help="Where to write the new labels")
+if use_gpu:
+    #parser.add_argument('--data_dir', default='/home/ubuntu/Dataset/images5', help="Directory of the X-ray image datasets, last digit is the set number")
+    parser.add_argument('--data_dir', default='/home/ubuntu/Dataset', help="Directory of the X-ray image datasets")
+    parser.add_argument('--output_image_dir', default='/home/ubuntu/Data_Processed/images/', help="Where to write the new images")
+    parser.add_argument('--output_label_dir', default='/home/ubuntu/Data_Processed/labels/', help="Where to write the new labels")
 else:
-   parser.add_argument('--data_dir', default='/home/ubuntu/Dataset/images5', help="Directory with the X-ray image dataset")
-   parser.add_argument('--output_image_dir', default='/home/ubuntu/Data_Processed/images/', help="Where to write the new images")
-   parser.add_argument('--output_label_dir', default='/home/ubuntu/Data_Processed/labels/', help="Where to write the new labels")
+    parser.add_argument('--data_dir', default='ChestX-ray14/images', help="Directory with the X-ray image dataset")
+    parser.add_argument('--output_image_dir', default='images/', help="Where to write the new images")
+    parser.add_argument('--output_label_dir', default='labels/', help="Where to write the new labels")
 
 def split_images(filenames, perc1, perc2, perc3):
     random.seed(230)
@@ -73,14 +75,32 @@ def write_file_to_list(filename, listfile, datafile):
         listfile.write("%s " % int(label))
     listfile.write('\n')
 
+def select_datasets(scope, directory):
+''' select and combine data from given scope, return the file list'''
+    datafolders = next(os.walk(directory))[1] # 0: current dir, 1: all subdirs, 2: all subfiles
+    filenames = []
+    for i in scope: # target dataset number, or can use other ranges
+        datafolder = os.path.join(directory, datafolders[i]) # path of i-th datafolder
+        folder_filenames = os.listdir(datafolder) # filenames in the folder
+        for f in folder_filenames:
+            if f.endswith('.png'):
+                filenames.append(os.path.join(datafolder, f))
+    return filenames
+
+
 if __name__ == '__main__':
     args = parser.parse_args()
 
     assert os.path.isdir(args.data_dir), "Couldn't find the dataset at {}".format(args.data_dir)
 
     # Get the filenames in each directory (train and test)
-    filenames = os.listdir(args.data_dir)
-    filenames = [os.path.join(args.data_dir, f) for f in filenames if f.endswith('.png')]
+    # if use GPU, we have many folders containing pictures, loop over each and combine
+    if use_gpu:
+        scope = [5]  # select the No. of datasets
+        filenames = select_datasets(scope, args.data_dir)
+    else:
+        filenames = os.listdir(args.data_dir)
+        filenames = [os.path.join(args.data_dir, f) for f in filenames if f.endswith('.png')]
 
     # Split the images in 'train_signs' into 80% train, 10% dev and 10% test
     # Make sure to always shuffle with a fixed seed so that the split is reproducible
