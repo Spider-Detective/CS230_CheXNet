@@ -12,7 +12,8 @@ from torch.autograd import Variable
 import modelSetting.net as net
 import read_data
 import utils
-
+import sklearn
+from tqdm import tqdm
 #from read_data import ChestXrayDataSet
 #import model.data_loader as data_loader
 
@@ -45,40 +46,53 @@ def evaluate(model, loss_fn, dataloader, metrics, use_gpu):
     false_negative = [0] * N_CLASSES
     # summary for current eval loop
     summ = []
+    preds = []
+    labels = []
+    auc = []
 
-    # compute metrics over the dataset
-    for data_batch, labels_batch in dataloader:
+    
+    # add tqdm 
+    with tqdm(total = len(dataloader)) as t:
+        # compute metrics over the dataset
+        for data_batch, labels_batch in dataloader:
 
-        # move to GPU if available
-        if use_gpu:
-            data_batch, labels_batch = data_batch.cuda(async=True), labels_batch.cuda(async=True)
-        
-        # fetch the next evaluation batch
-        data_batch, labels_batch = Variable(data_batch), Variable(labels_batch)
-        
-        # compute model output
-        preds_batch = model(data_batch)
-        loss = loss_fn(preds_batch, labels_batch)
+            # move to GPU if available
+            if use_gpu:
+                data_batch, labels_batch = data_batch.cuda(async=True), labels_batch.cuda(async=True)
 
-        # converse output probability to prediction data
-        preds_batch = preds_batch >= 0.5
-        preds_batch = preds_batch.type(torch.FloatTensor)
+            # fetch the next evaluation batch
+            data_batch, labels_batch = Variable(data_batch), Variable(labels_batch)
 
-        # extract data from torch Variable, move to cpu, convert to numpy arrays
-        preds_batch = preds_batch.data.cpu().numpy()
-        labels_batch = labels_batch.data.cpu().numpy()
-        #sample_size += output_batch.shape[0]
+            # compute model output
+            preds_batch = model(data_batch)
+            # loss = loss_fn(preds_batch, labels_batch)
+            
+            # calculate preds probability
+            preds.append(preds_batch.data.cpu().numpy().reshape(14))
+            labels.append(labels_batch.data.cpu().numpy().reshape(14))
+            
+            # converse output probability to prediction data
+            preds_batch = preds_batch >= 0.5
+            preds_batch = preds_batch.type(torch.FloatTensor)
 
-        false_positive_batch, false_negative_batch = net.compare_pred_and_label(preds_batch, labels_batch)
-        false_positive += false_positive_batch
-        false_negative += false_negative_batch
+            # extract data from torch Variable, move to cpu, convert to numpy arrays
+            preds_batch = preds_batch.data.cpu().numpy()
+            labels_batch = labels_batch.data.cpu().numpy()
+            #sample_size += output_batch.shape[0]
 
 
-        # compute all metrics on this batch
-        summary_batch = {metric: metrics[metric](preds_batch, labels_batch)
-                         for metric in metrics}
-        summary_batch['loss'] = loss.data[0]
-        summ.append(summary_batch)
+            false_positive_batch, false_negative_batch = net.compare_pred_and_label(preds_batch, labels_batch)
+            false_positive += false_positive_batch
+            false_negative += false_negative_batch
+
+
+            # compute all metrics on this batch
+            summary_batch = {metric: metrics[metric](preds_batch, labels_batch)
+                             for metric in metrics}
+            #summary_batch['loss'] = loss.data[0]
+            summ.append(summary_batch)
+
+            t.update()
 
     # compute mean of all metrics in summary
     metrics_mean = {metric:np.mean([x[metric] for x in summ]) for metric in summ[0]} 
@@ -87,7 +101,22 @@ def evaluate(model, loss_fn, dataloader, metrics, use_gpu):
     # Here is just the screen print out for debug
     print("- Eval metrics : " + metrics_string)
 
+    # calculate the AUC for each disease separately
+    preds = np.asarray(preds).astype(int)
+    labels = np.asarray(labels).astype(int)
+    print(labels.shape)
+    print(labels.shape)
+    for i in range(0,14):
+        try:
+            single_auc = sklearn.metrics.roc_auc_score(labels[:,i],preds[:,i])
+        except ValueError:
+            print("auc error")
+            single_auc = 0           
+        auc.append(single_auc)   
 
+    print("ROC AUC is :")
+    print(auc)
+    metrics_mean['auc_mean'] = np.mean(auc)
     print(np.array_str(false_positive))
     print(np.array_str(false_negative))
     return metrics_mean
@@ -116,9 +145,16 @@ if __name__ == '__main__':
     #DEV_IMAGE_LIST = 'dev_list.txt'
     # Create the input data pipeline
     logging.info("Creating the dataset...")
-
+    
+    # check gpu
+    use_gpu = torch.cuda.is_available()
+    
     # fetch dataloaders
-    dataloaders = read_data.fetch_dataloader(['dev'], 'images', 'labels')
+    if use_gpu:
+        dataloaders = read_data.fetch_dataloader(['dev'], '/home/ubuntu/Data_Processed/images', '/home/ubuntu/Data_Processed/labels')
+    else:
+        dataloaders = read_data.fetch_dataloader(['dev'], 'images', 'labels')
+    
     test_dl = dataloaders['dev']
 
     logging.info("- done.")
@@ -131,13 +167,17 @@ if __name__ == '__main__':
     metrics = net.metrics
 
     dev_model = net.DenseNet121(N_CLASSES)
-    utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
+    if use_gpu:
+        dev_model = net.DenseNet121(N_CLASSES).cuda()
+        dev_model = torch.nn.DataParallel(dev_model)
+
+    #utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
 
     logging.info("Starting evaluation")
 
     # Reload weights from the saved file
     #utils.load_checkpoint(os.path.join(args.model_dir, args.restore_file + '.pth.tar'), model)
-    use_gpu = torch.cuda.is_available()
+
     # Evaluate
     test_metrics = evaluate(dev_model, loss_fn, test_dl, metrics, use_gpu)
     #save_path = os.path.join(args.model_dir, "metrics_test_{}.json".format(args.restore_file))

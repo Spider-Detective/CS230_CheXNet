@@ -134,7 +134,7 @@ def train(model, optimizer, train_loader, loss_fn, metrics):
 def train_and_evaluate(model, optimizer, train_loader, dev_loader, loss_fn, metrics, num_epochs):
     since = time.time()
     best_model_wts = copy.deepcopy(model.state_dict())
-    best_acc = 0.0
+    best_auc = 0.0
 
     for epoch in range(num_epochs):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
@@ -147,14 +147,14 @@ def train_and_evaluate(model, optimizer, train_loader, dev_loader, loss_fn, metr
         # evalute the model in the dev_dataset
         print("Metric Report for the dev set") 
         dev_metrics = evaluate(model, train_loss, dev_loader, metrics, use_gpu)
-        dev_accuracy = dev_metrics['accuracy']
-        if dev_accuracy > best_acc:
+        dev_auc = dev_metrics['auc_mean']
+        if dev_auc > best_auc:
             print("Found better model!")
-            best_acc = dev_accuracy
+            best_auc = dev_auc
             best_model_wts = copy.deepcopy(model.state_dict())
 
     # print report
-    print('Best training Acc: {:4f}'.format(best_acc))
+    print('Best training AUC: {:4f}'.format(best_auc))
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
            time_elapsed // 60, time_elapsed % 60))
@@ -190,18 +190,17 @@ if use_gpu:
 
 #train_loss = nn.MultiLabelSoftMarginLoss(weight = train_weight) 
 train_loss = nn.MultiLabelSoftMarginLoss() 
-optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=5e-5)
+optimizer = optim.Adam(model.parameters(), lr=0.0001, weight_decay=5e-5)
 
 # Define the metrics
 metrics = net.metrics
-
 # Decay LR by a factor of 0.1 every 7 epochs
-#exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
+#exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
 
 # Train the model in the training set
 print("Names of 14 diseases:")
 [print(i, name) for i, name in enumerate(CLASS_NAMES)]
-train_and_evaluate(model, optimizer, train_dl, dev_dl, train_loss, metrics, num_epochs = 3)
+train_and_evaluate(model, optimizer, train_dl, dev_dl, train_loss, metrics,num_epochs = 5)
 utils.save_checkpoint({'state_dict': model.state_dict()}, is_best=None, checkpoint='trial1')
 #utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
 

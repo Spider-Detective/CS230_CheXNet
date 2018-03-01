@@ -68,6 +68,11 @@ def accuracy(outputs, labels):
     np.savetxt('output.csv', outputs - labels, delimiter = " ", fmt = '%1d')
     return (1 - np.count_nonzero(np.linalg.norm(outputs - labels, axis = 1)) / outputs.shape[0]) 
 
+# Here is our customized
+def dev_accuracy(outputs, labels):
+    np.savetxt('output.csv', outputs - labels, delimiter = " ", fmt = '%1d')
+    return (1 - np.count_nonzero(np.linalg.norm(outputs - labels, axis = 0)) / outputs.shape[0]) 
+
 def total_accuracy(outputs, labels):
     """
     Compute the accuracy, given the outputs and labels for all images.
@@ -104,3 +109,4 @@ metrics = {
     # 'recall':recall,
     # 'f1':f1
 }
+
