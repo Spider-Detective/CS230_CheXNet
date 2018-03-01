@@ -27,12 +27,11 @@ parser.add_argument('--restore_file', default='best', help="name of the file in 
                      containing weights to load")
 '''
 N_CLASSES = 14
-def evaluate(model, loss_fn, dataloader, metrics, use_gpu):
+def evaluate(model, dataloader, metrics, use_gpu):
     """Evaluate the model on `num_steps` batches.
 
     Args:
         model: (torch.nn.Module) the neural network
-        loss_fn: a function that takes batch_output and batch_labels and computes the loss for the batch
         dataloader: (DataLoader) a torch.utils.data.DataLoader object that fetches data
         metrics: (dict) a dictionary of functions that compute a metric using the output and labels of each batch
         params: (Params) hyperparameters
@@ -179,7 +178,7 @@ if __name__ == '__main__':
     #utils.load_checkpoint(os.path.join(args.model_dir, args.restore_file + '.pth.tar'), model)
 
     # Evaluate
-    test_metrics = evaluate(dev_model, loss_fn, test_dl, metrics, use_gpu)
+    test_metrics = evaluate(dev_model, test_dl, metrics, use_gpu)
     #save_path = os.path.join(args.model_dir, "metrics_test_{}.json".format(args.restore_file))
     #utils.save_dict_to_json(test_metrics, save_path)
 
