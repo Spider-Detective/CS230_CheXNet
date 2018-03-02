@@ -15,7 +15,7 @@ from PIL import Image
 # define a training image loader that specifies transforms on images. See documentation for more details.
 train_transformer = transforms.Compose([
     transforms.Resize(224),  # resize the image to 64x64 (remove if images are already 64x64)
-    transforms.RandomHorizontalFlip(),  # randomly flip image horizontally
+   # transforms.RandomHorizontalFlip(),  # randomly flip image horizontally
     transforms.ToTensor()])  # transform it into a torch tensor
 
 # loader for evaluation, no horizontal flip
@@ -29,7 +29,7 @@ eval_transformer = transforms.Compose([
 #DEV_DATA_DIR = 'images/dev' 
 #DEV_IMAGE_LIST = 'dev_list.txt'
 
-TRAIN_BATCH_SIZE = 32
+TRAIN_BATCH_SIZE = 16
 DEV_BATCH_SIZE = 1
 class ChestXrayDataSet(Dataset):
     def __init__(self, image_file, label_file, transform=None):

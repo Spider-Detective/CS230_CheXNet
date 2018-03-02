@@ -96,7 +96,7 @@ if __name__ == '__main__':
     # Get the filenames in each directory (train and test)
     # if use GPU, we have many folders containing pictures, loop over each and combine
     if use_gpu:
-        scope = [1,2,3,4,5,6,7,8,9,10,11,12]  # select the No. of datasets
+        scope = [5]  # select the No. of datasets
         filenames = select_datasets(scope, args.data_dir)
     else:
         filenames = os.listdir(args.data_dir)

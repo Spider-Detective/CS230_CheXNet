@@ -8,10 +8,8 @@ import os
 import time
 import copy
 import logging
-
 import numpy as np
 from tqdm import tqdm
-
 import torch
 import torch.nn as nn
 import torch.backends.cudnn as cudnn
@@ -21,36 +19,31 @@ import torchvision.transforms as transforms
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from sklearn.metrics import roc_auc_score
-
 import read_data 
 import utils
 import torch.optim.lr_scheduler as lr_scheduler
-
 # import customised model, metric and params
 import modelSetting.net as net
 from evaluate import evaluate
 
+
 N_CLASSES = 14
 CLASS_NAMES = [ 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass', 'Nodule', 'Pneumonia',
                 'Pneumothorax', 'Consolidation', 'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
+
 # Training data and entry list
-#TRAIN_DATA_DIR = 'images/train'
-#TRAIN_IMAGE_LIST = 'train_list.txt'
-TRAIN_BATCH_SIZE = 5
+#TRAIN_BATCH_SIZE = 5
 
 # Dev data and entry list
-#DEV_DATA_DIR = 'images/dev' 
-#DEV_IMAGE_LIST = 'dev_list.txt'
-DEV_BATCH_SIZE = 1
-use_gpu = torch.cuda.is_available()
+#DEV_BATCH_SIZE = 1
 
+# Check if GPU is available on current platform
+use_gpu = torch.cuda.is_available()
 
 normalize = transforms.Normalize([0.485, 0.456, 0.406],
                                  [0.229, 0.224, 0.225])
 
-# Create the input data pipeline
 utils.set_logger(os.path.join(os.getcwd(),'train.log'))
-
 logging.info("Loading the datasets...")
 
 # a general model definition, scheduler: learning rate decay    
@@ -72,7 +65,6 @@ def train(model, optimizer, scheduler, train_loader, loss_fn, metrics):
         # Iterate over data.
          for data in train_loader:
             # get the inputs
-
             inputs, labels = data
 
             # wrap them in Variable
@@ -87,9 +79,7 @@ def train(model, optimizer, scheduler, train_loader, loss_fn, metrics):
 
             # forward
             outputs = model(inputs)
-            
             loss = loss_fn(outputs, labels)
-
             loss.backward()
 
             # performs updates using calculated gradients
@@ -142,20 +132,19 @@ def train_and_evaluate(model, optimizer, scheduler, train_loader, dev_loader, lo
     for epoch in range(num_epochs):
         logging.info('Epoch {}/{}'.format(epoch, num_epochs - 1))
         logging.info('-' * 10)
-
         train(model, optimizer, scheduler, train_loader, loss_fn, metrics)
-        
         logging.info("\n")
 
         # evalute the model in the dev_dataset
         logging.info("Metric Report for the dev set") 
-        dev_metrics = evaluate(model, dev_loader, metrics, use_gpu)
+        dev_metrics, dev_loss = evaluate(model, dev_loader, metrics, use_gpu)
+        scheduler.step(dev_loss)
         dev_auc = dev_metrics['auc_mean']
         if dev_auc > best_auc:
             logging.info("Found better model!")
             best_auc = dev_auc
             best_model_wts = copy.deepcopy(model.state_dict())
-
+        logging.info('\n')
     # logging.info report
     logging.info('Best training AUC: {:4f}'.format(best_auc))
     time_elapsed = time.time() - since
@@ -198,12 +187,13 @@ optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=5e-5)
 # Define the metrics
 metrics = net.metrics
 # Decay LR by a factor of 0.1 every 7 epochs
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
+# exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
+plat_lr_scheduler = lr_scheduler.ReduceLROnPlateau(optimizer,patience = 1)
 
 # Train the model in the training set
 logging.info("Names of 14 diseases:")
 #[logging.info('Type={}'.format(i),'Disease={}'.format(name)) for i, name in enumerate(CLASS_NAMES)]
-train_and_evaluate(model, optimizer, exp_lr_scheduler, train_dl, dev_dl, train_loss, metrics,num_epochs = 5)
+train_and_evaluate(model, optimizer, plat_lr_scheduler, train_dl, dev_dl, train_loss, metrics,num_epochs = 5)
 utils.save_checkpoint({'state_dict': model.state_dict()}, is_best=None, checkpoint='trial1')
 #utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
 

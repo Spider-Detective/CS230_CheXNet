@@ -97,27 +97,26 @@ def evaluate(model, dataloader, metrics, use_gpu):
     metrics_mean = {metric:np.mean([x[metric] for x in summ]) for metric in summ[0]} 
     metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in metrics_mean.items())
     logging.info("- Eval metrics : " + metrics_string)
-    # Here is just the screen print out for debug
-    print("- Eval metrics : " + metrics_string)
+    # Here is just the screen logging.info out for debug
+    # logging.info("- Eval metrics : " + metrics_string)
 
     # calculate the AUC for each disease separately
     preds = np.asarray(preds).astype(int)
     labels = np.asarray(labels).astype(int)
-    print(labels.shape)
-    print(labels.shape)
+    #logging.info(labels.shape)
     for i in range(0,14):
         try:
             single_auc = sklearn.metrics.roc_auc_score(labels[:,i],preds[:,i])
         except ValueError:
-            print("auc error")
+            logging.info("auc error")
             single_auc = 0           
         auc.append(single_auc)   
 
-    print("ROC AUC is :")
-    print(auc)
+    logging.info("ROC AUC is :")
+    logging.info(auc)
     metrics_mean['auc_mean'] = np.mean(auc)
-    print(np.array_str(false_positive))
-    print(np.array_str(false_negative))
+    #logging.info(np.array_str(false_positive))
+    #logging.info(np.array_str(false_negative))
     return metrics_mean
 
 
