@@ -1,0 +1,113 @@
+2018-03-01 15:10:43,326:INFO: Loading the datasets...
+2018-03-01 15:10:43,766:INFO: Names of 14 diseases:
+2018-03-01 15:10:43,819:INFO: Epoch 0/4
+2018-03-01 15:10:43,819:INFO: ----------
+2018-03-01 15:10:55,373:INFO: - Train metrics: accuracy: 0.091 ; total_accuracy: 0.844 ; loss: 0.681
+2018-03-01 15:10:55,499:INFO: 
+
+2018-03-01 15:10:55,500:INFO: Metric Report for the dev set
+2018-03-01 15:10:57,723:INFO: - Eval metrics : accuracy: 0.250 ; total_accuracy: 0.929
+2018-03-01 15:10:57,727:INFO: Found better model!
+2018-03-01 15:10:57,751:INFO: Epoch 1/4
+2018-03-01 15:10:57,751:INFO: ----------
+2018-03-01 15:19:12,942:INFO: Loading the datasets...
+2018-03-01 15:19:13,153:INFO: Names of 14 diseases:
+2018-03-01 15:19:13,314:INFO: Epoch 0/4
+2018-03-01 15:19:13,315:INFO: ----------
+2018-03-01 15:19:24,923:INFO: - Train metrics: 
+2018-03-01 15:19:24,924:INFO: False positives of each disease: 
+2018-03-01 15:19:24,924:INFO: False negatives of each disease: 
+2018-03-01 15:19:25,067:INFO: 
+
+2018-03-01 15:19:25,067:INFO: Metric Report for the dev set
+2018-03-01 15:19:27,354:INFO: - Eval metrics : accuracy: 0.250 ; total_accuracy: 0.946
+2018-03-01 15:19:27,360:INFO: Found better model!
+2018-03-01 15:19:27,389:INFO: Epoch 1/4
+2018-03-01 15:19:27,389:INFO: ----------
+2018-03-01 15:23:37,051:INFO: Loading the datasets...
+2018-03-01 15:23:37,384:INFO: Names of 14 diseases:
+2018-03-01 15:23:37,409:INFO: Epoch 0/4
+2018-03-01 15:23:37,410:INFO: ----------
+2018-03-01 15:23:49,168:INFO: - Train metrics: 
+2018-03-01 15:23:49,169:INFO: False positives of each disease: 
+2018-03-01 15:23:49,169:INFO: False negatives of each disease: 
+2018-03-01 15:23:49,299:INFO: 
+
+2018-03-01 15:23:49,300:INFO: Metric Report for the dev set
+2018-03-01 15:23:51,547:INFO: - Eval metrics : accuracy: 0.000 ; total_accuracy: 0.929
+2018-03-01 15:23:51,552:INFO: Found better model!
+2018-03-01 15:23:51,576:INFO: Epoch 1/4
+2018-03-01 15:23:51,576:INFO: ----------
+2018-03-01 15:24:39,136:INFO: - Train metrics: 
+2018-03-01 15:24:40,136:INFO: False positives of each disease: 
+2018-03-01 15:24:40,137:INFO: False negatives of each disease: 
+2018-03-01 15:24:40,675:INFO: 
+
+2018-03-01 15:24:40,676:INFO: Metric Report for the dev set
+2018-03-01 15:24:49,064:INFO: - Eval metrics : accuracy: 0.250 ; total_accuracy: 0.946
+2018-03-01 15:24:49,455:INFO: Epoch 2/4
+2018-03-01 15:24:49,455:INFO: ----------
+2018-03-01 15:27:03,782:INFO: Loading the datasets...
+2018-03-01 15:27:04,552:INFO: Names of 14 diseases:
+2018-03-01 15:27:04,579:INFO: Epoch 0/4
+2018-03-01 15:27:04,579:INFO: ----------
+2018-03-01 15:27:17,679:INFO: - Train metrics: accuracy: 0.091 ; total_accuracy: 0.825 ; loss: 0.680
+2018-03-01 15:27:17,680:INFO: False positives of each disease: [2 1 0 0 0 0 0 0 0 2 0 0 6 2]
+2018-03-01 15:27:17,680:INFO: False negatives of each disease: [4 0 1 0 0 0 0 3 0 0 6 0 0 0]
+2018-03-01 15:27:17,809:INFO: 
+
+2018-03-01 15:27:17,810:INFO: Metric Report for the dev set
+2018-03-01 15:27:20,124:INFO: - Eval metrics : accuracy: 0.250 ; total_accuracy: 0.911
+2018-03-01 15:27:20,129:INFO: Found better model!
+2018-03-01 15:27:20,155:INFO: Epoch 1/4
+2018-03-01 15:27:20,155:INFO: ----------
+2018-03-01 15:29:38,382:INFO: - Train metrics: accuracy: 0.364 ; total_accuracy: 0.935 ; loss: 0.469
+2018-03-01 15:29:38,735:INFO: False positives of each disease: [0 0 0 0 0 0 0 0 0 0 0 0 1 0]
+2018-03-01 15:29:38,736:INFO: False negatives of each disease: [3 0 1 0 0 0 0 3 0 0 2 0 0 0]
+2018-03-01 15:29:39,248:INFO: 
+
+2018-03-01 15:29:39,269:INFO: Metric Report for the dev set
+2018-03-01 15:31:03,116:INFO: - Eval metrics : accuracy: 0.250 ; total_accuracy: 0.929
+2018-03-01 15:31:03,834:INFO: Epoch 2/4
+2018-03-01 15:31:03,834:INFO: ----------
+2018-03-01 15:32:03,526:INFO: - Train metrics: accuracy: 0.727 ; total_accuracy: 0.968 ; loss: 0.428
+2018-03-01 15:32:03,606:INFO: False positives of each disease: [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+2018-03-01 15:32:03,607:INFO: False negatives of each disease: [1 0 1 0 0 0 0 2 0 0 1 0 0 0]
+2018-03-01 15:32:03,769:INFO: 
+
+2018-03-01 15:32:03,769:INFO: Metric Report for the dev set
+2018-03-01 15:32:16,033:INFO: - Eval metrics : accuracy: 0.250 ; total_accuracy: 0.929
+2018-03-01 15:32:16,115:INFO: Epoch 3/4
+2018-03-01 15:32:16,116:INFO: ----------
+2018-03-01 15:32:46,162:INFO: - Train metrics: accuracy: 0.727 ; total_accuracy: 0.974 ; loss: 0.419
+2018-03-01 15:32:46,458:INFO: False positives of each disease: [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+2018-03-01 15:32:46,458:INFO: False negatives of each disease: [1 0 1 0 0 0 0 1 0 0 1 0 0 0]
+2018-03-01 15:32:47,122:INFO: 
+
+2018-03-01 15:32:47,139:INFO: Metric Report for the dev set
+2018-03-01 15:33:03,981:INFO: - Eval metrics : accuracy: 0.250 ; total_accuracy: 0.929
+2018-03-01 15:33:04,054:INFO: Epoch 4/4
+2018-03-01 15:33:04,054:INFO: ----------
+2018-03-01 15:33:25,835:INFO: - Train metrics: accuracy: 0.636 ; total_accuracy: 0.974 ; loss: 0.424
+2018-03-01 15:33:26,022:INFO: False positives of each disease: [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+2018-03-01 15:33:26,023:INFO: False negatives of each disease: [1 0 1 0 0 0 0 2 0 0 0 0 0 0]
+2018-03-01 15:33:26,234:INFO: 
+
+2018-03-01 15:33:26,234:INFO: Metric Report for the dev set
+2018-03-01 15:33:31,619:INFO: - Eval metrics : accuracy: 0.250 ; total_accuracy: 0.929
+2018-03-01 15:33:31,658:INFO: Best training AUC: 0.071429
+2018-03-01 15:33:31,659:INFO: Training complete in 6m 27s
+2018-03-01 16:41:27,127:INFO: Loading the datasets...
+2018-03-01 16:41:27,579:INFO: Names of 14 diseases:
+2018-03-01 16:41:27,603:INFO: Epoch 0/4
+2018-03-01 16:41:27,603:INFO: ----------
+2018-03-01 16:41:39,569:INFO: - Train metrics: accuracy: 0.182 ; total_accuracy: 0.851 ; loss: 0.679
+2018-03-01 16:41:39,572:INFO: False positives of each disease: [1 1 0 0 0 0 0 0 0 0 0 0 6 1]
+2018-03-01 16:41:39,573:INFO: False negatives of each disease: [4 0 1 0 0 0 0 3 0 0 6 0 0 0]
+2018-03-01 16:41:39,682:INFO: 
+
+2018-03-01 16:41:39,682:INFO: Metric Report for the dev set
+2018-03-01 16:41:41,838:INFO: - Eval metrics : accuracy: 0.000 ; total_accuracy: 0.911
+2018-03-01 16:41:41,842:INFO: Found better model!
+2018-03-01 16:41:41,867:INFO: Epoch 1/4
+2018-03-01 16:41:41,867:INFO: ----------
