@@ -8,6 +8,8 @@ import os
 import time
 import copy
 import logging
+import sys
+
 import numpy as np
 from tqdm import tqdm
 import torch
@@ -127,7 +129,7 @@ def train(model, optimizer, scheduler, train_loader, loss_fn, metrics):
 def train_and_evaluate(model, optimizer, scheduler, train_loader, dev_loader, loss_fn, metrics, num_epochs):
     since = time.time()
     best_model_wts = copy.deepcopy(model.state_dict())
-    best_loss = 0.0
+    best_loss = sys.float_info.max
 
     for epoch in range(num_epochs):
         logging.info('Epoch {}/{}'.format(epoch, num_epochs - 1))
@@ -140,7 +142,7 @@ def train_and_evaluate(model, optimizer, scheduler, train_loader, dev_loader, lo
         dev_metrics, dev_loss = evaluate(model, dev_loader, metrics, loss_fn, use_gpu)
         scheduler.step(dev_loss)
         #dev_auc = dev_metrics['auc_mean']
-        if dev_loss > best_loss:
+        if dev_loss < best_loss:
             logging.info("Found better model!")
             best_loss = dev_loss
             best_model_wts = copy.deepcopy(model.state_dict())
@@ -188,7 +190,7 @@ optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=5e-5)
 metrics = net.metrics
 # Decay LR by a factor of 0.1 every 7 epochs
 # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
-plat_lr_scheduler = lr_scheduler.ReduceLROnPlateau(optimizer,patience = 1)
+plat_lr_scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience = 1, verbose=True)
 
 # Train the model in the training set
 logging.info("Names of 14 diseases:")
