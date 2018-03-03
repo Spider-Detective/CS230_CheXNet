@@ -27,7 +27,7 @@ parser.add_argument('--restore_file', default='best', help="name of the file in 
                      containing weights to load")
 '''
 N_CLASSES = 14
-def evaluate(model, dataloader, metrics, use_gpu):
+def evaluate(model, dataloader, metrics, loss_fn, use_gpu):
     """Evaluate the model on `num_steps` batches.
 
     Args:
@@ -48,7 +48,7 @@ def evaluate(model, dataloader, metrics, use_gpu):
     preds = []
     labels = []
     auc = []
-
+    loss_avg = utils.RunningAverage()
     
     # add tqdm 
     with tqdm(total = len(dataloader)) as t:
@@ -64,7 +64,8 @@ def evaluate(model, dataloader, metrics, use_gpu):
 
             # compute model output
             preds_batch = model(data_batch)
-            # loss = loss_fn(preds_batch, labels_batch)
+            loss = loss_fn(preds_batch, labels_batch)
+            loss_avg.update(loss.data[0])
             
             # calculate preds probability
             preds.append(preds_batch.data.cpu().numpy().reshape(14))
@@ -75,10 +76,10 @@ def evaluate(model, dataloader, metrics, use_gpu):
             preds_batch = preds_batch.type(torch.FloatTensor)
 
             # extract data from torch Variable, move to cpu, convert to numpy arrays
-            preds_batch = preds_batch.data.cpu().numpy()
-            labels_batch = labels_batch.data.cpu().numpy()
+            preds_batch = preds_batch.data.cpu().numpy().reshape((1,14))
+            labels_batch = labels_batch.data.cpu().numpy().reshape((1,14))
             #sample_size += output_batch.shape[0]
-
+            
 
             false_positive_batch, false_negative_batch = net.compare_pred_and_label(preds_batch, labels_batch)
             false_positive += false_positive_batch
@@ -88,7 +89,7 @@ def evaluate(model, dataloader, metrics, use_gpu):
             # compute all metrics on this batch
             summary_batch = {metric: metrics[metric](preds_batch, labels_batch)
                              for metric in metrics}
-            #summary_batch['loss'] = loss.data[0]
+            summary_batch['loss'] = loss.data[0]
             summ.append(summary_batch)
 
             t.update()
@@ -117,7 +118,7 @@ def evaluate(model, dataloader, metrics, use_gpu):
     metrics_mean['auc_mean'] = np.mean(auc)
     #logging.info(np.array_str(false_positive))
     #logging.info(np.array_str(false_negative))
-    return metrics_mean
+    return metrics_mean, loss_avg()
 
 
 if __name__ == '__main__':
@@ -177,7 +178,7 @@ if __name__ == '__main__':
     #utils.load_checkpoint(os.path.join(args.model_dir, args.restore_file + '.pth.tar'), model)
 
     # Evaluate
-    test_metrics = evaluate(dev_model, test_dl, metrics, use_gpu)
+    test_metrics, test_loss = evaluate(dev_model, test_dl, metrics, loss_fn, use_gpu)
     #save_path = os.path.join(args.model_dir, "metrics_test_{}.json".format(args.restore_file))
     #utils.save_dict_to_json(test_metrics, save_path)
 

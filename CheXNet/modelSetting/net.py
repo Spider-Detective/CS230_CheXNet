@@ -39,22 +39,24 @@ class DenseNet121(nn.Module):
 # function here.
 
 
-def loss_fn(outputs, labels):
-    """
-    Compute the cross entropy loss given outputs and labels.
+# def loss_fn(outs, labels):
+#     """
+#     Compute the cross entropy loss given outputs and labels.
 
-    Args:
-        outputs: (Variable) dimension batch_size x 6 - output of the model
-        labels: (Variable) dimension batch_size, where each element is a value in [0, 1, 2, 3, 4, 5]
+#     Args:
+#         outputs: (Variable) dimension batch_size x 6 - output of the model
+#         labels: (Variable) dimension batch_size, where each element is a value in [0, 1, 2, 3, 4, 5]
 
-    Returns:
-        loss (Variable): cross entropy loss for all images in the batch
+#     Returns:
+#         loss (Variable): cross entropy loss for all images in the batch
 
-    Note: you may use a standard loss function from http://pytorch.org/docs/master/nn.html#loss-functions. This example
-          demonstrates how you can easily define a custom loss function.
-    """
-    num_examples = outputs.size()[0]
-    return -torch.sum(outputs[range(num_examples), labels])/num_examples
+#     Note: you may use a standard loss function from http://pytorch.org/docs/master/nn.html#loss-functions. This example
+#           demonstrates how you can easily define a custom loss function.
+#     """
+#     print(outs.size)
+#     num_examples = outs.size()[0]
+
+#     return -torch.sum(outs[range(num_examples), labels])/num_examples
 
 def compare_pred_and_label(outputs, labels):
     '''compare the prediciton with true labels, and return the number of false positives and negatives'''

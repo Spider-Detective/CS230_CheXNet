@@ -49,7 +49,7 @@ logging.info("Loading the datasets...")
 # a general model definition, scheduler: learning rate decay    
 def train(model, optimizer, scheduler, train_loader, loss_fn, metrics):
 
-    scheduler.step()
+    #scheduler.step()
     model.train(True)  # Set model to training mode
 
     running_accuracy = 0.0
@@ -127,7 +127,7 @@ def train(model, optimizer, scheduler, train_loader, loss_fn, metrics):
 def train_and_evaluate(model, optimizer, scheduler, train_loader, dev_loader, loss_fn, metrics, num_epochs):
     since = time.time()
     best_model_wts = copy.deepcopy(model.state_dict())
-    best_auc = 0.0
+    best_loss = 0.0
 
     for epoch in range(num_epochs):
         logging.info('Epoch {}/{}'.format(epoch, num_epochs - 1))
@@ -137,16 +137,16 @@ def train_and_evaluate(model, optimizer, scheduler, train_loader, dev_loader, lo
 
         # evalute the model in the dev_dataset
         logging.info("Metric Report for the dev set") 
-        dev_metrics, dev_loss = evaluate(model, dev_loader, metrics, use_gpu)
+        dev_metrics, dev_loss = evaluate(model, dev_loader, metrics, loss_fn, use_gpu)
         scheduler.step(dev_loss)
-        dev_auc = dev_metrics['auc_mean']
-        if dev_auc > best_auc:
+        #dev_auc = dev_metrics['auc_mean']
+        if dev_loss > best_loss:
             logging.info("Found better model!")
-            best_auc = dev_auc
+            best_loss = dev_loss
             best_model_wts = copy.deepcopy(model.state_dict())
         logging.info('\n')
     # logging.info report
-    logging.info('Best training AUC: {:4f}'.format(best_auc))
+    logging.info('Best eval loss: {:4f}'.format(best_loss))
     time_elapsed = time.time() - since
     logging.info('Training complete in {:.0f}m {:.0f}s'.format(
            time_elapsed // 60, time_elapsed % 60))
