@@ -98,18 +98,16 @@ def evaluate(model, dataloader, metrics, loss_fn, use_gpu):
     metrics_mean = {metric:np.mean([x[metric] for x in summ]) for metric in summ[0]} 
     metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in metrics_mean.items())
     logging.info("- Eval metrics : " + metrics_string)
-    # Here is just the screen logging.info out for debug
-    # logging.info("- Eval metrics : " + metrics_string)
 
     # calculate the AUC for each disease separately
     preds = np.asarray(preds).astype(int)
     labels = np.asarray(labels).astype(int)
-    #logging.info(labels.shape)
+
     for i in range(0,14):
         try:
             single_auc = sklearn.metrics.roc_auc_score(labels[:,i],preds[:,i])
         except ValueError:
-            logging.info("auc error")
+            logging.info("AUC value error! Cannot calculate AUC.")
             single_auc = 0           
         auc.append(single_auc)   
 
@@ -160,8 +158,6 @@ if __name__ == '__main__':
 
     # Define the model
     # model = net.Net(params).cuda() if params.cuda else net.Net(params)
-    # model = utils.load_
-    #loss_fn = net.loss_fn
     loss_fn = nn.MultiLabelSoftMarginLoss() 
     metrics = net.metrics
 

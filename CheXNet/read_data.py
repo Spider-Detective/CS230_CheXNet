@@ -15,19 +15,15 @@ from PIL import Image
 # define a training image loader that specifies transforms on images. See documentation for more details.
 train_transformer = transforms.Compose([
     transforms.Resize(224),  # resize the image to 64x64 (remove if images are already 64x64)
-   # transforms.RandomHorizontalFlip(),  # randomly flip image horizontally
-    transforms.ToTensor()])  # transform it into a torch tensor
+    transforms.RandomHorizontalFlip(),  # randomly flip image horizontally
+    transforms.ToTensor(),  # transform it into a torch tensor
+    transforms.Normalize([0.485, 0.456, 0.406],[0.229, 0.224, 0.225])])
 
 # loader for evaluation, no horizontal flip
 eval_transformer = transforms.Compose([
     transforms.Resize(224),  # resize the image to 64x64 (remove if images are already 64x64)
-    transforms.ToTensor()])  # transform it into a torch tensor
-
-#TRAIN_DATA_DIR = 'images/train'
-#TRAIN_IMAGE_LIST = 'train_list.txt'
-
-#DEV_DATA_DIR = 'images/dev' 
-#DEV_IMAGE_LIST = 'dev_list.txt'
+    transforms.ToTensor(),    # transform it into a torch tensor
+    transforms.Normalize([0.485, 0.456, 0.406],[0.229, 0.224, 0.225])])
 
 TRAIN_BATCH_SIZE = 16
 DEV_BATCH_SIZE = 1

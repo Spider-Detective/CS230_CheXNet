@@ -33,18 +33,10 @@ N_CLASSES = 14
 CLASS_NAMES = [ 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass', 'Nodule', 'Pneumonia',
                 'Pneumothorax', 'Consolidation', 'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
 
-# Training data and entry list
-#TRAIN_BATCH_SIZE = 5
-
-# Dev data and entry list
-#DEV_BATCH_SIZE = 1
-
 # Check if GPU is available on current platform
 use_gpu = torch.cuda.is_available()
 
-normalize = transforms.Normalize([0.485, 0.456, 0.406],
-                                 [0.229, 0.224, 0.225])
-
+# save the output into a log file
 utils.set_logger(os.path.join(os.getcwd(),'train.log'))
 logging.info("Loading the datasets...")
 
@@ -116,8 +108,6 @@ def train(model, optimizer, scheduler, train_loader, loss_fn, metrics):
     # the mean metrics for this epoch, compute mean of all metrics in summary
     metrics_mean = {metric:np.mean([x[metric] for x in summ]) for metric in summ[0]}
     metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in metrics_mean.items())
-    
-    #logging.info("- Train metrics: " + metrics_string)
     
     logging.info("- Train metrics: %s", metrics_string)
     logging.info("False positives of each disease: %s", np.array_str(false_positive))
