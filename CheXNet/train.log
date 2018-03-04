@@ -1,15 +1,134 @@
-2018-03-03 22:11:24,978:INFO: Loading the datasets...
-2018-03-03 22:11:25,179:INFO: Names of 14 diseases:
-2018-03-03 22:11:25,199:INFO: Epoch 0/4
-2018-03-03 22:11:25,199:INFO: ----------
-2018-03-03 22:11:36,444:INFO: - Train metrics: accuracy: 0.000 ; total_accuracy: 0.851 ; ROC_AUC: 0.133 ; loss: 0.679
-2018-03-03 22:11:36,445:INFO: False positives of each disease: [2 1 0 0 0 0 0 0 0 1 0 0 5 0]
-2018-03-03 22:11:36,446:INFO: False negatives of each disease: [4 0 1 0 0 0 0 3 0 0 6 0 0 0]
-2018-03-03 22:11:36,920:INFO: 
+2018-03-04 13:54:22,713:INFO: Loading the datasets...
+2018-03-04 13:54:22,927:INFO: Names of 14 diseases:
+2018-03-04 13:54:22,950:INFO: Epoch 0/4
+2018-03-04 13:54:22,953:INFO: ----------
+2018-03-04 13:54:38,413:INFO: - Train metrics: accuracy: 0.000 ; total_accuracy: 0.552 ; loss: 0.679
+2018-03-04 13:54:38,415:INFO: False positives of each disease: [ 6  8  0  3  1  0  3  0  3  9  1  7 11  8]
+2018-03-04 13:54:38,416:INFO: False negatives of each disease: [1 0 1 0 0 0 0 3 0 0 4 0 0 0]
+2018-03-04 13:54:38,977:INFO: 
 
-2018-03-03 22:11:36,920:INFO: Metric Report for the dev set
-2018-03-03 22:11:38,552:INFO: - Eval metrics : accuracy: 0.250 ; total_accuracy: 0.893 ; ROC_AUC: 0.071 ; loss: 0.536
-2018-03-03 22:11:38,554:INFO: AUC value error! Cannot calculate AUC.
-2018-03-03 22:11:38,555:INFO: AUC value error! Cannot calculate AUC.
-2018-03-03 22:11:38,555:INFO: AUC value error! Cannot calculate AUC.
-2018-03-03 22:11:38,556:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:38,977:INFO: Metric Report for the dev set
+2018-03-04 13:54:40,853:INFO: - Eval metrics : accuracy: 0.000 ; total_accuracy: 0.000 ; loss: 0.554
+2018-03-04 13:54:40,855:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:40,855:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:40,856:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:40,859:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:40,859:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:40,859:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:40,861:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:40,861:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:40,861:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:40,861:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:40,862:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:40,862:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:40,862:INFO: ROC AUC is :
+2018-03-04 13:54:40,862:INFO: [0, 0, 0, 0.33333333333333337, 0, 0, 0, 0.5, 0, 0, 0, 0, 0, 0]
+2018-03-04 13:54:40,899:INFO: Found better model!
+2018-03-04 13:54:40,930:INFO: 
+
+2018-03-04 13:54:40,931:INFO: Epoch 1/4
+2018-03-04 13:54:40,931:INFO: ----------
+2018-03-04 13:54:51,719:INFO: - Train metrics: accuracy: 0.182 ; total_accuracy: 0.916 ; loss: 0.461
+2018-03-04 13:54:51,720:INFO: False positives of each disease: [0 0 0 0 0 0 0 0 0 2 0 0 6 0]
+2018-03-04 13:54:51,720:INFO: False negatives of each disease: [2 0 1 0 0 0 0 2 0 0 0 0 0 0]
+2018-03-04 13:54:52,159:INFO: 
+
+2018-03-04 13:54:52,159:INFO: Metric Report for the dev set
+2018-03-04 13:54:53,936:INFO: - Eval metrics : accuracy: 0.000 ; total_accuracy: 0.000 ; loss: 0.471
+2018-03-04 13:54:53,937:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:53,937:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:53,937:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:53,939:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:53,940:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:53,940:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:53,941:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:53,941:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:53,941:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:53,942:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:53,942:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:53,942:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:54:53,942:INFO: ROC AUC is :
+2018-03-04 13:54:53,942:INFO: [0, 0, 0, 0.33333333333333337, 0, 0, 0, 0.75, 0, 0, 0, 0, 0, 0]
+2018-03-04 13:54:53,984:INFO: Found better model!
+2018-03-04 13:54:54,018:INFO: 
+
+2018-03-04 13:54:54,018:INFO: Epoch 2/4
+2018-03-04 13:54:54,018:INFO: ----------
+2018-03-04 13:55:04,197:INFO: - Train metrics: accuracy: 0.818 ; total_accuracy: 0.987 ; loss: 0.301
+2018-03-04 13:55:04,200:INFO: False positives of each disease: [0 0 0 0 0 0 0 0 0 0 1 0 0 0]
+2018-03-04 13:55:04,200:INFO: False negatives of each disease: [0 0 1 0 0 0 0 0 0 0 0 0 0 0]
+2018-03-04 13:55:04,581:INFO: 
+
+2018-03-04 13:55:04,581:INFO: Metric Report for the dev set
+2018-03-04 13:55:06,330:INFO: - Eval metrics : accuracy: 0.000 ; total_accuracy: 0.000 ; loss: 0.414
+2018-03-04 13:55:06,331:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:06,331:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:06,332:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:06,333:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:06,334:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:06,334:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:06,335:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:06,335:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:06,336:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:06,336:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:06,336:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:06,336:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:06,336:INFO: ROC AUC is :
+2018-03-04 13:55:06,336:INFO: [0, 0, 0, 1.0, 0, 0, 0, 0.75, 0, 0, 0, 0, 0, 0]
+2018-03-04 13:55:06,373:INFO: Found better model!
+2018-03-04 13:55:06,401:INFO: 
+
+2018-03-04 13:55:06,401:INFO: Epoch 3/4
+2018-03-04 13:55:06,401:INFO: ----------
+2018-03-04 13:55:17,330:INFO: - Train metrics: accuracy: 0.909 ; total_accuracy: 0.994 ; loss: 0.199
+2018-03-04 13:55:17,332:INFO: False positives of each disease: [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+2018-03-04 13:55:17,333:INFO: False negatives of each disease: [0 0 1 0 0 0 0 0 0 0 0 0 0 0]
+2018-03-04 13:55:17,788:INFO: 
+
+2018-03-04 13:55:17,788:INFO: Metric Report for the dev set
+2018-03-04 13:55:19,556:INFO: - Eval metrics : accuracy: 0.000 ; total_accuracy: 0.000 ; loss: 0.374
+2018-03-04 13:55:19,557:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:19,557:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:19,558:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:19,559:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:19,559:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:19,559:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:19,560:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:19,560:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:19,560:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:19,560:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:19,561:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:19,561:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:19,561:INFO: ROC AUC is :
+2018-03-04 13:55:19,561:INFO: [0, 0, 0, 1.0, 0, 0, 0, 0.75, 0, 0, 0, 0, 0, 0]
+2018-03-04 13:55:19,593:INFO: Found better model!
+2018-03-04 13:55:19,625:INFO: 
+
+2018-03-04 13:55:19,625:INFO: Epoch 4/4
+2018-03-04 13:55:19,625:INFO: ----------
+2018-03-04 13:55:30,792:INFO: - Train metrics: accuracy: 1.000 ; total_accuracy: 1.000 ; loss: 0.131
+2018-03-04 13:55:30,794:INFO: False positives of each disease: [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+2018-03-04 13:55:30,794:INFO: False negatives of each disease: [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+2018-03-04 13:55:31,284:INFO: 
+
+2018-03-04 13:55:31,284:INFO: Metric Report for the dev set
+2018-03-04 13:55:33,028:INFO: - Eval metrics : accuracy: 0.000 ; total_accuracy: 0.000 ; loss: 0.327
+2018-03-04 13:55:33,028:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:33,029:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:33,029:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:33,031:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:33,031:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:33,031:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:33,032:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:33,032:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:33,032:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:33,033:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:33,034:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:33,034:INFO: AUC value error! Cannot calculate AUC.
+2018-03-04 13:55:33,034:INFO: ROC AUC is :
+2018-03-04 13:55:33,034:INFO: [0, 0, 0, 1.0, 0, 0, 0, 0.75, 0, 0, 0, 0, 0, 0]
+2018-03-04 13:55:33,069:INFO: Found better model!
+2018-03-04 13:55:33,098:INFO: 
+
+2018-03-04 13:55:33,098:INFO: Best eval loss: 0.326608
+2018-03-04 13:55:33,098:INFO: Training complete in 1m 10s

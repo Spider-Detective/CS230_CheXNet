@@ -28,7 +28,7 @@ class DenseNet121(nn.Module):
         num_ftrs = self.densenet121.classifier.in_features
         self.densenet121.classifier = nn.Sequential(
             nn.Linear(num_ftrs, out_size),
-            #nn.Sigmoid()
+            nn.Sigmoid()
         )
 
     def forward(self, x):
@@ -44,12 +44,11 @@ def compare_pred_and_label(outputs, labels):
 
 # Here is our customized
 def accuracy(outputs, labels):
-    np.savetxt('output.csv', outputs - labels, delimiter = " ", fmt = '%1d')
     return (1 - np.count_nonzero(np.linalg.norm(outputs - labels, axis = 1)) / outputs.shape[0]) 
 
 # Here is our customized
 def dev_accuracy(outputs, labels):
-    np.savetxt('output.csv', outputs - labels, delimiter = " ", fmt = '%1d')
+    #np.savetxt('output.csv', outputs - labels, delimiter = " ", fmt = '%1d')
     return (1 - np.count_nonzero(np.linalg.norm(outputs - labels, axis = 0)) / outputs.shape[0]) 
 
 def total_accuracy(outputs, labels):
@@ -87,24 +86,35 @@ metrics = {
     # 'f1':f1
 }
 
-# Here is our own customized defined loss function, we can made our customed loss
-# function here.
+class MultiLabelLoss():
+    """Creates a criterion that optimizes a multi-label one-versus-all
+    loss based on max-entropy, between input `x` and target `y` of size `(N, C)`.
+    For each sample in the minibatch::
 
-# def loss_fn(outs, labels):
-#     """
-#     Compute the cross entropy loss given outputs and labels.
+       loss(x, y) = - sum_i (y[i] * log( 1 / (1 + exp(-x[i])) )
+                         + ( (1-y[i]) * log(exp(-x[i]) / (1 + exp(-x[i])) ) )
 
-#     Args:
-#         outputs: (Variable) dimension batch_size x 6 - output of the model
-#         labels: (Variable) dimension batch_size, where each element is a value in [0, 1, 2, 3, 4, 5]
+    where `i == 0` to `x.nElement()-1`, `y[i]  in {0,1}`.
 
-#     Returns:
-#         loss (Variable): cross entropy loss for all images in the batch
+    Args:
+        weight (Tensor, optional): a manual rescaling weight given to each
+           class. If given, it has to be a Tensor of size `C`. Otherwise, it is
+           treated as if having all ones.
+        size_average (bool, optional): By default, the losses are averaged over
+            observations for each minibatch. However, if the field :attr:`size_average`
+            is set to ``False``, the losses are instead summed for each minibatch.
+            Default: ``True``
+        reduce (bool, optional): By default, the losses are averaged or summed over
+            observations for each minibatch depending on :attr:`size_average`. When
+            :attr:`reduce` is ``False``, returns a loss per batch element instead and
+            ignores :attr:`size_average`. Default: ``True``
 
-#     Note: you may use a standard loss function from http://pytorch.org/docs/master/nn.html#loss-functions. This example
-#           demonstrates how you can easily define a custom loss function.
-#     """
-#     print(outs.size)
-#     num_examples = outs.size()[0]
+    Shape:
+        - Input: :math:`(N, C)` where `N` is the batch size and `C` is the number of classes.
+        - Target: :math:`(N, C)`, same shape as the input.
+        - Output: scalar. If `reduce` is False, then `(N)`.
+    """
 
-#     return -torch.sum(outs[range(num_examples), labels])/num_examples
+    def compute(self, input, target):
+        return F.binary_cross_entropy(input, target, weight=None, size_average=True)
+        #multilabel_soft_margin_loss(input, target, self.weight, self.size_average,self.reduce)

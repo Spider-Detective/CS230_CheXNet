@@ -73,12 +73,12 @@ def train(model, optimizer, scheduler, train_loader, loss_fn, metrics):
 
             # forward
             outputs = model(inputs)
-            loss = loss_fn(outputs, labels)
+            loss = loss_fn.compute(outputs, labels)
             loss.backward()
 
             # performs updates using calculated gradients
             optimizer.step()
-
+            
             # cutoff by 0.5
             preds = outputs >= 0.5
             preds = preds.type(torch.FloatTensor)
@@ -130,7 +130,6 @@ def train_and_evaluate(model, optimizer, scheduler, train_loader, dev_loader, lo
         logging.info("Metric Report for the dev set") 
         dev_metrics, dev_loss = evaluate(model, dev_loader, metrics, loss_fn, use_gpu)
         scheduler.step(dev_loss)
-        #dev_auc = dev_metrics['auc_mean']
 
         # find the best model based on the dev loss
         if dev_loss < best_loss:
@@ -174,7 +173,8 @@ if use_gpu:
 #   train_weight = train_weight.cuda()
 
 #train_loss = nn.MultiLabelSoftMarginLoss(weight = train_weight) 
-train_loss = nn.MultiLabelSoftMarginLoss() 
+#train_loss = nn.MultiLabelSoftMarginLoss() 
+train_loss = net.MultiLabelLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=5e-5)
 
 # Define the metrics

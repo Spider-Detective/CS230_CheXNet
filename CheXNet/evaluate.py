@@ -64,25 +64,32 @@ def evaluate(model, dataloader, metrics, loss_fn, use_gpu):
 
             # compute model output
             preds_batch = model(data_batch)
-            loss = loss_fn(preds_batch, labels_batch)
+            loss = loss_fn.compute(preds_batch, labels_batch)
             loss_avg.update(loss.data[0])
             
             # reshape into 1D numpy array and output for all batches
-            preds.append(preds_batch.data.cpu().numpy().reshape(14))
-            labels.append(labels_batch.data.cpu().numpy().reshape(14))
-            
-            # converse output probability to prediction data
-            preds_batch = preds_batch >= 0.5
-            preds_batch = preds_batch.type(torch.FloatTensor)
+            #preds.append(preds_batch.data.cpu().numpy().reshape(14))
+            #labels.append(labels_batch.data.cpu().numpy().reshape(14))
 
             # extract data from torch Variable, move to cpu, convert to numpy arrays
             preds_batch = preds_batch.data.cpu().numpy().reshape((1,14))
             labels_batch = labels_batch.data.cpu().numpy().reshape((1,14))
 
-            false_positive_batch, false_negative_batch = net.compare_pred_and_label(preds_batch, labels_batch)
-            false_positive += false_positive_batch
-            false_negative += false_negative_batch
+            # save for auc calculation
+            if (len(preds) == 0):
+                preds = preds_batch
+                labels = labels_batch
+            else:
+                preds = np.vstack((preds, preds_batch))
+                labels = np.vstack((labels, labels_batch))
 
+            # converse output probability to prediction data
+            #preds_batch = preds_batch >= 0.5
+            #preds_batch = preds_batch.type(torch.FloatTensor)
+
+            #false_positive_batch, false_negative_batch = net.compare_pred_and_label(preds_batch, labels_batch)
+            #false_positive += false_positive_batch
+            #false_negative += false_negative_batch
 
             # compute all metrics on this batch
             summary_batch = {metric: metrics[metric](preds_batch, labels_batch)
@@ -96,10 +103,6 @@ def evaluate(model, dataloader, metrics, loss_fn, use_gpu):
     metrics_mean = {metric:np.mean([x[metric] for x in summ]) for metric in summ[0]} 
     metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in metrics_mean.items())
     logging.info("- Eval metrics : " + metrics_string)
-
-    # calculate the AUC for each disease separately
-    preds = np.asarray(preds).astype(int)
-    labels = np.asarray(labels).astype(int)
 
     # Calculate AUC, catch the error if not possible to calculate
     for i in range(0,14):
@@ -155,7 +158,7 @@ if __name__ == '__main__':
 
     # Define the model
     # model = net.Net(params).cuda() if params.cuda else net.Net(params)
-    loss_fn = nn.MultiLabelSoftMarginLoss() 
+    loss_fn = net.MultiLabelLoss()
     metrics = net.metrics
 
     dev_model = net.DenseNet121(N_CLASSES)
@@ -172,6 +175,7 @@ if __name__ == '__main__':
 
     # Evaluate
     dev_metrics, dev_loss = evaluate(dev_model, dev_dl, metrics, loss_fn, use_gpu)
+
     #save_path = os.path.join(args.model_dir, "metrics_test_{}.json".format(args.restore_file))
     #utils.save_dict_to_json(test_metrics, save_path)
 
