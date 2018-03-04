@@ -12,7 +12,6 @@ from torch.autograd import Variable
 import modelSetting.net as net
 import read_data
 import utils
-import sklearn
 from tqdm import tqdm
 #from read_data import ChestXrayDataSet
 #import model.data_loader as data_loader
@@ -47,7 +46,7 @@ def evaluate(model, dataloader, metrics, loss_fn, use_gpu):
     summ = []
     preds = []
     labels = []
-    auc = []
+
     loss_avg = utils.RunningAverage()
     
     # add tqdm 
