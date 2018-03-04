@@ -115,7 +115,6 @@ def train(model, optimizer, scheduler, train_loader, loss_fn, metrics):
     
     # model.load_state_dict(best_model_wts)
 
-
 def train_and_evaluate(model, optimizer, scheduler, train_loader, dev_loader, loss_fn, metrics, num_epochs):
     since = time.time()
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -132,6 +131,8 @@ def train_and_evaluate(model, optimizer, scheduler, train_loader, dev_loader, lo
         dev_metrics, dev_loss = evaluate(model, dev_loader, metrics, loss_fn, use_gpu)
         scheduler.step(dev_loss)
         #dev_auc = dev_metrics['auc_mean']
+
+        # find the best model based on the dev loss
         if dev_loss < best_loss:
             logging.info("Found better model!")
             best_loss = dev_loss

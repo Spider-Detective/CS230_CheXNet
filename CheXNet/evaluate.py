@@ -67,7 +67,7 @@ def evaluate(model, dataloader, metrics, loss_fn, use_gpu):
             loss = loss_fn(preds_batch, labels_batch)
             loss_avg.update(loss.data[0])
             
-            # calculate preds probability
+            # reshape into 1D numpy array and output for all batches
             preds.append(preds_batch.data.cpu().numpy().reshape(14))
             labels.append(labels_batch.data.cpu().numpy().reshape(14))
             
@@ -78,8 +78,6 @@ def evaluate(model, dataloader, metrics, loss_fn, use_gpu):
             # extract data from torch Variable, move to cpu, convert to numpy arrays
             preds_batch = preds_batch.data.cpu().numpy().reshape((1,14))
             labels_batch = labels_batch.data.cpu().numpy().reshape((1,14))
-            #sample_size += output_batch.shape[0]
-            
 
             false_positive_batch, false_negative_batch = net.compare_pred_and_label(preds_batch, labels_batch)
             false_positive += false_positive_batch
@@ -103,6 +101,7 @@ def evaluate(model, dataloader, metrics, loss_fn, use_gpu):
     preds = np.asarray(preds).astype(int)
     labels = np.asarray(labels).astype(int)
 
+    # Calculate AUC, catch the error if not possible to calculate
     for i in range(0,14):
         try:
             single_auc = sklearn.metrics.roc_auc_score(labels[:,i],preds[:,i])
@@ -114,8 +113,7 @@ def evaluate(model, dataloader, metrics, loss_fn, use_gpu):
     logging.info("ROC AUC is :")
     logging.info(auc)
     metrics_mean['auc_mean'] = np.mean(auc)
-    #logging.info(np.array_str(false_positive))
-    #logging.info(np.array_str(false_negative))
+    
     return metrics_mean, loss_avg()
 
 
@@ -138,8 +136,7 @@ if __name__ == '__main__':
         
     # Get the logger
     #utils.set_logger(os.path.join(args.model_dir, 'evaluate.log'))
-    #DEV_DATA_DIR = 'images/dev' 
-    #DEV_IMAGE_LIST = 'dev_list.txt'
+
     # Create the input data pipeline
     logging.info("Creating the dataset...")
     
@@ -152,7 +149,7 @@ if __name__ == '__main__':
     else:
         dataloaders = read_data.fetch_dataloader(['dev'], 'images', 'labels')
     
-    test_dl = dataloaders['dev']
+    dev_dl = dataloaders['dev']
 
     logging.info("- done.")
 
@@ -174,7 +171,7 @@ if __name__ == '__main__':
     #utils.load_checkpoint(os.path.join(args.model_dir, args.restore_file + '.pth.tar'), model)
 
     # Evaluate
-    test_metrics, test_loss = evaluate(dev_model, test_dl, metrics, loss_fn, use_gpu)
+    dev_metrics, dev_loss = evaluate(dev_model, dev_dl, metrics, loss_fn, use_gpu)
     #save_path = os.path.join(args.model_dir, "metrics_test_{}.json".format(args.restore_file))
     #utils.save_dict_to_json(test_metrics, save_path)
 

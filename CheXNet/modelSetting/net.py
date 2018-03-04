@@ -81,7 +81,7 @@ def f1(outputs,labels):
 metrics = {
     'accuracy': accuracy,
     'total_accuracy': total_accuracy,
-    #'ROC_AUC': ROC_AUC,
+    'ROC_AUC': ROC_AUC,
     # 'precision':precision,
     # 'recall':recall,
     # 'f1':f1
