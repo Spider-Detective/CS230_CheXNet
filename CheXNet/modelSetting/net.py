@@ -75,6 +75,17 @@ def recall(outputs,labels):
 
 def f1(outputs,labels):
     return f1_score(labels, outputs, average='weighted')
+
+def computeROC_AUC(outputs, labels):
+    # Calculate AUC, catch the error if not possible to calculate
+    for i in range(0,14):
+        try:
+            single_auc = sklearn.metrics.roc_auc_score(labels[:,i],preds[:,i])
+        except ValueError:
+            logging.info("AUC value error! Cannot calculate AUC.")
+            single_auc = 0           
+        auc.append(single_auc) 
+    return auc
     
 # maintain all metrics required in this dictionary- these are used in the training and evaluation loops
 metrics = {

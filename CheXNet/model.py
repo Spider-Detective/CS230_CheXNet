@@ -112,8 +112,6 @@ def train(model, optimizer, scheduler, train_loader, loss_fn, metrics):
     logging.info("- Train metrics: %s", metrics_string)
     logging.info("False positives of each disease: %s", np.array_str(false_positive))
     logging.info("False negatives of each disease: %s", np.array_str(false_negative))
-    
-    # model.load_state_dict(best_model_wts)
 
 def train_and_evaluate(model, optimizer, scheduler, train_loader, dev_loader, loss_fn, metrics, num_epochs):
     since = time.time()
@@ -173,7 +171,6 @@ if use_gpu:
 #   train_weight = train_weight.cuda()
 
 #train_loss = nn.MultiLabelSoftMarginLoss(weight = train_weight) 
-#train_loss = nn.MultiLabelSoftMarginLoss() 
 train_loss = net.MultiLabelLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=5e-5)
 

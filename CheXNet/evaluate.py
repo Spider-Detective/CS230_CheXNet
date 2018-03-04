@@ -104,15 +104,7 @@ def evaluate(model, dataloader, metrics, loss_fn, use_gpu):
     metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in metrics_mean.items())
     logging.info("- Eval metrics : " + metrics_string)
 
-    # Calculate AUC, catch the error if not possible to calculate
-    for i in range(0,14):
-        try:
-            single_auc = sklearn.metrics.roc_auc_score(labels[:,i],preds[:,i])
-        except ValueError:
-            logging.info("AUC value error! Cannot calculate AUC.")
-            single_auc = 0           
-        auc.append(single_auc)   
-
+    auc = computeROC_AUC(preds, labels) 
     logging.info("ROC AUC is :")
     logging.info(auc)
     metrics_mean['auc_mean'] = np.mean(auc)
