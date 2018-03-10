@@ -25,7 +25,7 @@ parser.add_argument('--model_dir', default='experiments/base_model', help="Direc
 parser.add_argument('--restore_file', default='best', help="name of the file in --model_dir \
                      containing weights to load")
 '''
-N_CLASSES = 14
+N_CLASSES = 15
 def evaluate(model, dataloader, metrics, loss_fn, use_gpu):
     """Evaluate the model on `num_steps` batches.
 
@@ -71,8 +71,8 @@ def evaluate(model, dataloader, metrics, loss_fn, use_gpu):
             #labels.append(labels_batch.data.cpu().numpy().reshape(14))
 
             # extract data from torch Variable, move to cpu, convert to numpy arrays
-            preds_batch = preds_batch.data.cpu().numpy().reshape((1,14))
-            labels_batch = labels_batch.data.cpu().numpy().reshape((1,14))
+            preds_batch = preds_batch.data.cpu().numpy().reshape((1,N_CLASSES))
+            labels_batch = labels_batch.data.cpu().numpy().reshape((1,N_CLASSES))
 
             # save for auc calculation
             if (len(preds) == 0):

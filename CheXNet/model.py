@@ -29,8 +29,8 @@ import modelSetting.net as net
 from evaluate import evaluate
 
 
-N_CLASSES = 14
-CLASS_NAMES = [ 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass', 'Nodule', 'Pneumonia',
+N_CLASSES = 15
+CLASS_NAMES = [ 'No finding', 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass', 'Nodule', 'Pneumonia',
                 'Pneumothorax', 'Consolidation', 'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
 
 # Check if GPU is available on current platform
@@ -171,7 +171,7 @@ if use_gpu:
 #   train_weight = train_weight.cuda()
 
 #train_loss = nn.MultiLabelSoftMarginLoss(weight = train_weight) 
-train_loss = net.MultiLabelLoss()
+train_loss = net.MultiLabelLoss2()
 optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=5e-5)
 
 # Define the metrics

@@ -6,6 +6,7 @@ Read images and corresponding labels.
 import os
 import random
 
+import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
@@ -41,7 +42,14 @@ class ChestXrayDataSet(Dataset):
             for line in f:
                 items = line.split()
                 image_name= items[0]
-                label = items[1:]
+                
+                # construct the labels containing no_finding
+                finding = np.count_nonzero( np.asarray(items[1:] , dtype = np.int32) )
+                if finding == 0:
+                    items[0] = 0
+                else:
+                    items[0] = 1
+                label = items
                 label = [int(i) for i in label]
                 image_name = os.path.join(image_file, image_name)
                 image_names.append(image_name)
