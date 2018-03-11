@@ -24,9 +24,9 @@ class DenseNet121(nn.Module):
     """
     def __init__(self, out_size):
         super(DenseNet121, self).__init__()
-        self.densenet121 = torchvision.models.densenet121(pretrained=True)
-        num_ftrs = self.densenet121.classifier.in_features
-        self.densenet121.classifier = nn.Sequential(
+        self.densenet121 = torchvision.models.resnet18(pretrained=True)
+        num_ftrs = self.densenet121.fc.in_features
+        self.densenet121.fc = nn.Sequential(
             nn.Linear(num_ftrs, out_size),
             nn.Sigmoid()
         )
@@ -132,8 +132,13 @@ class MultiLabelLoss2():
         num_example = input.size()[0]
         #loss = target[:,0] * F.binary_cross_entropy(input, target, weight=None, size_average=True)
         #loss = loss + (1 - target[]) * ()
+        
+        use_gpu = torch.cuda.is_available()
         # calculate the 14 disease cross_entropy
-        loss = Variable(torch.zeros(num_example,1).type(torch.FloatTensor), requires_grad = True)
+        if use_gpu:
+            loss = Variable(torch.zeros(num_example,1).type(torch.cuda.FloatTensor), requires_grad = True)
+        else:        
+            loss = Variable(torch.zeros(num_example,1).type(torch.FloatTensor), requires_grad = True)
         for i in range(1,classes):
             loss = loss +  torch.mul(target[:,i],torch.log(input[:,i])) + \
             torch.mul(1 - target[:,i],torch.log(1 - input[:,i]))

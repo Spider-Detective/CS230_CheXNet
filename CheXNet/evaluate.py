@@ -106,8 +106,12 @@ def evaluate(model, dataloader, metrics, loss_fn, use_gpu):
     auc = net.computeROC_AUC(preds, labels) 
     logging.info("ROC AUC is :")
     logging.info(auc)
+    logging.info("average ROC_AUC scores :")
+    logging.info(np.mean(auc))
     metrics_mean['auc_mean'] = np.mean(auc)
-    
+
+    logging.info("evaluation end! dev loss is:")
+    logging.info(loss_avg()) 
     return metrics_mean, loss_avg()
 
 

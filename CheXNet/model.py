@@ -172,18 +172,18 @@ if use_gpu:
 
 #train_loss = nn.MultiLabelSoftMarginLoss(weight = train_weight) 
 train_loss = net.MultiLabelLoss2()
-optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=5e-5)
+optimizer = optim.Adam(model.parameters(), lr=0.0001, weight_decay=5e-5)
 
 # Define the metrics
 metrics = net.metrics
 # Decay LR by a factor of 0.1 every 7 epochs
 # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
-plat_lr_scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience = 1, verbose=True)
+plat_lr_scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience = 1, verbose=True, threshold=0.01)
 
 # Train the model in the training set
 logging.info("Names of 14 diseases:")
 #[logging.info('Type={}'.format(i),'Disease={}'.format(name)) for i, name in enumerate(CLASS_NAMES)]
-train_and_evaluate(model, optimizer, plat_lr_scheduler, train_dl, dev_dl, train_loss, metrics,num_epochs = 5)
+train_and_evaluate(model, optimizer, plat_lr_scheduler, train_dl, dev_dl, train_loss, metrics,num_epochs = 10)
 utils.save_checkpoint({'state_dict': model.state_dict()}, is_best=None, checkpoint='trial1')
 #utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
 
