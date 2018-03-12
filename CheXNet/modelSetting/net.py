@@ -22,18 +22,62 @@ class DenseNet121(nn.Module):
     except the classifier layer which has an additional sigmoid function.
 
     """
-    def __init__(self, out_size):
+    def __init__(self, embed_size):
         super(DenseNet121, self).__init__()
         self.densenet121 = torchvision.models.densenet121(pretrained=True)
         num_ftrs = self.densenet121.classifier.in_features
         self.densenet121.classifier = nn.Sequential(
-            nn.Linear(num_ftrs, out_size),
+            nn.Linear(num_ftrs, embed_size),
             nn.Sigmoid()
         )
 
     def forward(self, x):
         x = self.densenet121(x)
         return x 
+
+class DecoderRNN(nn.Module):
+    def __init__(self, embed_size, hidden_size, class_num, num_layers):
+        """Set the hyper-parameters and build the layers."""
+        super(DecoderRNN, self).__init__()
+        #self.embed = nn.Embedding(vocab_size, embed_size)
+        self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, batch_first=True)
+        self.linear = nn.Linear(hidden_size, class_num)
+        self.sigmoid = nn.Sigmoid()
+        #self.init_weights()
+    
+    def init_weights(self):
+        """Initialize weights."""
+    #    self.embed.weight.data.uniform_(-0.1, 0.1)
+        self.linear.weight.data.uniform_(-0.1, 0.1)
+        self.linear.bias.data.fill_(0)
+        
+    def forward(self, features, captions):#, lengths):
+        """Decode image feature vectors and generates captions."""
+        #embeddings = self.embed(captions)
+        #embeddings = torch.cat((features.unsqueeze(1), embeddings), 1)
+        #packed = pack_padded_sequence(embeddings, lengths, batch_first=True) 
+
+        input_shape = list(features.size()) # size is batch * NClasses
+        encoded = features.view(1, input_shape[0], input_shape[1])
+        hiddens, _ = self.lstm(encoded) # todo: add h0, c0 here
+        outputs = self.linear(hiddens[0])
+        outputs = self.sigmoid(outputs)
+        return outputs
+    
+    # def sample(self, features, states=None):
+    #     """Samples captions for given image features (Greedy search)."""
+    #     sampled_ids = []
+    #     inputs = features.unsqueeze(1)
+    #     for i in range(20):                                      # maximum sampling length
+    #         hiddens, states = self.lstm(inputs, states)          # (batch_size, 1, hidden_size), 
+    #         outputs = self.linear(hiddens.squeeze(1))            # (batch_size, vocab_size)
+    #         predicted = outputs.max(1)[1]
+    #         sampled_ids.append(predicted)
+    #         inputs = self.embed(predicted)
+    #         inputs = inputs.unsqueeze(1)                         # (batch_size, 1, embed_size)
+    #     sampled_ids = torch.cat(sampled_ids, 1)                  # (batch_size, 20)
+    #     return sampled_ids.squeeze()
+
 
 def compare_pred_and_label(outputs, labels):
     '''compare the prediciton with true labels, and return the number of false positives and negatives'''

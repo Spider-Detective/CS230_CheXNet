@@ -158,11 +158,20 @@ train_dl = dataloaders['train']
 dev_dl = dataloaders['dev']
 
 # initialize and load the model
-model = net.DenseNet121(N_CLASSES)
-if use_gpu:
-    model = net.DenseNet121(N_CLASSES).cuda()
-    model = torch.nn.DataParallel(model)
+encoder = net.DenseNet121(N_CLASSES)
 
+# todo: decide the input sizes
+embed_size = 200
+hidden_size = 600
+num_layers = 3
+decoder = net.DecoderRNN(embed_size, hidden_size, N_CLASSES, num_layers)
+
+if use_gpu:
+    encoder = net.DenseNet121(N_CLASSES).cuda()
+    encoder = torch.nn.DataParallel(encoder)
+
+    decoder = net.DecoderRNN(embed_size, hidden_size, N_CLASSES, num_layers).cuda()
+    decoder = torch.nn.DataParallel(decoder)
 
 #weights_file = os.path.join('/home/ubuntu/Data_Processed/labels/','train_list.txt')
 #train_weight = torch.from_numpy(utils.get_loss_weights(weights_file)).float()
@@ -172,7 +181,7 @@ if use_gpu:
 
 #train_loss = nn.MultiLabelSoftMarginLoss(weight = train_weight) 
 train_loss = net.MultiLabelLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=5e-5)
+optimizer = optim.Adam(encoder.parameters(), lr=0.001, weight_decay=5e-5)
 
 # Define the metrics
 metrics = net.metrics
@@ -183,8 +192,8 @@ plat_lr_scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience = 1, verb
 # Train the model in the training set
 logging.info("Names of 14 diseases:")
 #[logging.info('Type={}'.format(i),'Disease={}'.format(name)) for i, name in enumerate(CLASS_NAMES)]
-train_and_evaluate(model, optimizer, plat_lr_scheduler, train_dl, dev_dl, train_loss, metrics,num_epochs = 5)
-utils.save_checkpoint({'state_dict': model.state_dict()}, is_best=None, checkpoint='trial1')
+train_and_evaluate(encoder, optimizer, plat_lr_scheduler, train_dl, dev_dl, train_loss, metrics,num_epochs = 5)
+utils.save_checkpoint({'state_dict': encoder.state_dict()}, is_best=None, checkpoint='trial1')
 #utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
 
 
