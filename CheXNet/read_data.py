@@ -1,4 +1,3 @@
-# encoding: utf-8
 
 """
 Read images and corresponding labels.
