@@ -1,18 +1,20 @@
-2018-03-11 20:34:39,471:INFO: Loading the datasets...
-2018-03-11 20:34:39,775:INFO: Names of 14 diseases:
-2018-03-11 20:34:39,796:INFO: Epoch 0/4
-2018-03-11 20:34:39,797:INFO: ----------
-2018-03-11 20:34:51,268:INFO: - Train metrics: accuracy: 0.000 ; total_accuracy: 0.558 ; loss: 0.680
-2018-03-11 20:34:51,270:INFO: False positives of each disease: [ 4 10  0  3  1  0  3  0  4 10  1  5 11  6]
-2018-03-11 20:34:51,270:INFO: False negatives of each disease: [1 0 1 0 0 0 0 3 0 0 5 0 0 0]
-2018-03-11 20:34:51,775:INFO: 
+2018-03-12 10:58:41,501:INFO: Loading the datasets...
+2018-03-12 10:58:41,670:INFO: Names of 14 diseases:
+2018-03-12 10:58:41,693:INFO: Epoch 0/4
+2018-03-12 10:58:41,693:INFO: ----------
+2018-03-12 10:58:56,526:INFO: - Train metrics: accuracy: 0.00000 ; total_accuracy: 0.57792 ; loss: 0.69310
+2018-03-12 10:58:56,530:INFO: False positives of each disease: [ 7  3 10  1 11  0  1  8  0  0  1  0 11  7]
+2018-03-12 10:58:56,531:INFO: False negatives of each disease: [0 0 0 0 0 0 0 0 0 0 5 0 0 0]
+2018-03-12 10:58:56,977:INFO: 
 
-2018-03-11 20:34:51,775:INFO: Metric Report for the dev set
-2018-03-11 20:34:53,486:INFO: - Eval metrics : accuracy: 0.000 ; total_accuracy: 0.000 ; loss: 0.526
-2018-03-11 20:34:53,491:INFO: ROC AUC is :
-2018-03-11 20:34:53,492:INFO: [0, 0, 0, 0.6666666666666667, 0, 0, 0, 0.75, 0, 0, 0, 0, 0, 0]
-2018-03-11 20:34:53,531:INFO: Found better model!
-2018-03-11 20:34:53,559:INFO: 
+2018-03-12 10:58:56,977:INFO: Metric Report for the dev set
+2018-03-12 10:58:58,719:INFO: - Eval metrics : accuracy: 0.00000 ; total_accuracy: 0.00000 ; loss: 0.68951
+2018-03-12 10:58:58,727:INFO: ROC AUC is :
+2018-03-12 10:58:58,727:INFO: [0, 0, 0, 1.0, 0, 0, 0, 0.0, 0, 0, 0, 0, 0, 0]
+2018-03-12 10:58:58,727:INFO: Mean value of AUC: 
+2018-03-12 10:58:58,728:INFO: 0.07142857142857142
+2018-03-12 10:58:58,761:INFO: Found better model!
+2018-03-12 10:58:58,786:INFO: 
 
-2018-03-11 20:34:53,559:INFO: Epoch 1/4
-2018-03-11 20:34:53,559:INFO: ----------
+2018-03-12 10:58:58,786:INFO: Epoch 1/4
+2018-03-12 10:58:58,787:INFO: ----------

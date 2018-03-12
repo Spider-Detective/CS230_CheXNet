@@ -28,7 +28,7 @@ class DenseNet121(nn.Module):
         num_ftrs = self.densenet121.classifier.in_features
         self.densenet121.classifier = nn.Sequential(
             nn.Linear(num_ftrs, embed_size),
-            nn.Sigmoid()
+            #nn.Sigmoid()
         )
 
     def forward(self, x):
@@ -51,15 +51,17 @@ class DecoderRNN(nn.Module):
         self.linear.weight.data.uniform_(-0.1, 0.1)
         self.linear.bias.data.fill_(0)
         
-    def forward(self, features, captions):#, lengths):
+    def forward(self, features):#, captions):#, lengths):
         """Decode image feature vectors and generates captions."""
         #embeddings = self.embed(captions)
         #embeddings = torch.cat((features.unsqueeze(1), embeddings), 1)
         #packed = pack_padded_sequence(embeddings, lengths, batch_first=True) 
 
-        input_shape = list(features.size()) # size is batch * NClasses
+        input_shape = list(features.size()) # size is batch * embed_size
         encoded = features.view(1, input_shape[0], input_shape[1])
-        hiddens, _ = self.lstm(encoded) # todo: add h0, c0 here
+
+        # todo: add h0, c0 here, now both are initalized as zero
+        hiddens, _ = self.lstm(encoded) 
         outputs = self.linear(hiddens[0])
         outputs = self.sigmoid(outputs)
         return outputs

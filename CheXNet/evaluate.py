@@ -26,7 +26,7 @@ parser.add_argument('--restore_file', default='best', help="name of the file in 
                      containing weights to load")
 '''
 N_CLASSES = 14
-def evaluate(model, dataloader, metrics, loss_fn, use_gpu):
+def evaluate(encoder, decoder, dataloader, metrics, loss_fn, use_gpu):
     """Evaluate the model on `num_steps` batches.
 
     Args:
@@ -38,60 +38,52 @@ def evaluate(model, dataloader, metrics, loss_fn, use_gpu):
     """
 
     # set model to evaluation mode
-    model.eval()
+    encoder.eval()
+    decoder.eval()
 
     false_positive = [0] * N_CLASSES
     false_negative = [0] * N_CLASSES
     # summary for current eval loop
     summ = []
-    preds = []
-    labels = []
+    outputs_batch = []
+    labels_batch = []
 
     loss_avg = utils.RunningAverage()
     
     # add tqdm 
     with tqdm(total = len(dataloader)) as t:
         # compute metrics over the dataset
-        for data_batch, labels_batch in dataloader:
+        for data, labels in dataloader:
 
             # move to GPU if available
             if use_gpu:
-                data_batch, labels_batch = data_batch.cuda(async=True), labels_batch.cuda(async=True)
+                data, labels = data.cuda(async=True), labels.cuda(async=True)
 
             # fetch the next evaluation batch
-            data_batch, labels_batch = Variable(data_batch), Variable(labels_batch)
+            data, labels = Variable(data), Variable(labels)
 
             # compute model output
-            preds_batch = model(data_batch)
-            loss = loss_fn.compute(preds_batch, labels_batch)
+            pred_features = encoder(data)
+            outputs = decoder(pred_features)
+
+            loss = loss_fn.compute(outputs, labels)
             loss_avg.update(loss.data[0])
             
             # reshape into 1D numpy array and output for all batches
-            #preds.append(preds_batch.data.cpu().numpy().reshape(14))
-            #labels.append(labels_batch.data.cpu().numpy().reshape(14))
-
             # extract data from torch Variable, move to cpu, convert to numpy arrays
-            preds_batch = preds_batch.data.cpu().numpy().reshape((1,14))
-            labels_batch = labels_batch.data.cpu().numpy().reshape((1,14))
-
+            outputs = outputs.data.cpu().numpy().reshape((1,14))
+            labels = labels.data.cpu().numpy().reshape((1,14))
+            
             # save for auc calculation
-            if (len(preds) == 0):
-                preds = preds_batch
-                labels = labels_batch
+            if (len(outputs_batch) == 0):  # first output and label
+                outputs_batch = outputs
+                labels_batch = labels
             else:
-                preds = np.vstack((preds, preds_batch))
-                labels = np.vstack((labels, labels_batch))
-
-            # converse output probability to prediction data
-            #preds_batch = preds_batch >= 0.5
-            #preds_batch = preds_batch.type(torch.FloatTensor)
-
-            #false_positive_batch, false_negative_batch = net.compare_pred_and_label(preds_batch, labels_batch)
-            #false_positive += false_positive_batch
-            #false_negative += false_negative_batch
+                outputs_batch = np.vstack((outputs_batch, outputs))
+                labels_batch = np.vstack((labels_batch, labels))
 
             # compute all metrics on this batch
-            summary_batch = {metric: metrics[metric](preds_batch, labels_batch)
+            summary_batch = {metric: metrics[metric](outputs, labels)
                              for metric in metrics}
             summary_batch['loss'] = loss.data[0]
             summ.append(summary_batch)
@@ -100,13 +92,16 @@ def evaluate(model, dataloader, metrics, loss_fn, use_gpu):
 
     # compute mean of all metrics in summary
     metrics_mean = {metric:np.mean([x[metric] for x in summ]) for metric in summ[0]} 
-    metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in metrics_mean.items())
+    metrics_string = " ; ".join("{}: {:05.5f}".format(k, v) for k, v in metrics_mean.items())
     logging.info("- Eval metrics : " + metrics_string)
 
-    auc = net.computeROC_AUC(preds, labels) 
+    auc = net.computeROC_AUC(outputs_batch, labels_batch) 
     logging.info("ROC AUC is :")
     logging.info(auc)
+
     metrics_mean['auc_mean'] = np.mean(auc)
+    logging.info("Mean value of AUC: ")
+    logging.info(metrics_mean['auc_mean'])
     
     return metrics_mean, loss_avg()
 
@@ -152,10 +147,18 @@ if __name__ == '__main__':
     loss_fn = net.MultiLabelLoss()
     metrics = net.metrics
 
-    dev_model = net.DenseNet121(N_CLASSES)
+    embed_size = 50
+    hidden_size = 100
+    num_layers = 1
+    encoder = net.DenseNet121(embed_size)
+    decoder = net.DecoderRNN(embed_size, hidden_size, N_CLASSES, num_layers)
+
     if use_gpu:
-        dev_model = net.DenseNet121(N_CLASSES).cuda()
-        dev_model = torch.nn.DataParallel(dev_model)
+        encoder = encoder.cuda()
+        encoder = torch.nn.DataParallel(encoder)
+
+        decoder = decoder.cuda()
+        decoder = torch.nn.DataParallel(decoder)
 
     #utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
 
@@ -165,7 +168,7 @@ if __name__ == '__main__':
     #utils.load_checkpoint(os.path.join(args.model_dir, args.restore_file + '.pth.tar'), model)
 
     # Evaluate
-    dev_metrics, dev_loss = evaluate(dev_model, dev_dl, metrics, loss_fn, use_gpu)
+    dev_metrics, dev_loss = evaluate(encoder, decoder, dev_dl, metrics, loss_fn, use_gpu)
 
     #save_path = os.path.join(args.model_dir, "metrics_test_{}.json".format(args.restore_file))
     #utils.save_dict_to_json(test_metrics, save_path)
