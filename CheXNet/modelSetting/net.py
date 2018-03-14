@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
+from torch.autograd import Variable
 
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import average_precision_score
@@ -39,9 +40,11 @@ class DecoderRNN(nn.Module):
     def __init__(self, embed_size, hidden_size, class_num, num_layers):
         """Set the hyper-parameters and build the layers."""
         super(DecoderRNN, self).__init__()
+        self.hidden_size = hidden_size
+        self.num_layers = num_layers
         #self.embed = nn.Embedding(vocab_size, embed_size)
-        self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, batch_first=True)
-        self.linear = nn.Linear(hidden_size, class_num)
+        self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, batch_first=True, bidirectional=True)
+        self.linear = nn.Linear(hidden_size * 2, class_num) # 2 for bidirectional
         self.sigmoid = nn.Sigmoid()
         #self.init_weights()
     
@@ -60,9 +63,12 @@ class DecoderRNN(nn.Module):
         input_shape = list(features.size()) # size is batch * embed_size
         encoded = features.view(1, input_shape[0], input_shape[1])
 
-        # todo: add h0, c0 here, now both are initalized as zero
-        hiddens, _ = self.lstm(encoded) 
-        outputs = self.linear(hiddens[0])
+        # Set initial states
+        h0 = Variable(torch.zeros(self.num_layers*2, encoded.size(0), self.hidden_size)) # 2 for bidirection 
+        c0 = Variable(torch.zeros(self.num_layers*2, encoded.size(0), self.hidden_size))
+
+        hiddens, _ = self.lstm(encoded, (h0, c0)) # hiddens is of shape [1, batch_size, hidden_size * 2]
+        outputs = self.linear(hiddens[0])         # outpus is of shape [batch_size, N_CLASSES]
         outputs = self.sigmoid(outputs)
         return outputs
     
