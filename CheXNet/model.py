@@ -1,4 +1,4 @@
-# encoding: utf-8
+
 
 """
 The main CheXNet model implementation.
@@ -33,12 +33,6 @@ N_CLASSES = 15
 CLASS_NAMES = [ 'No finding', 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass', 'Nodule', 'Pneumonia',
                 'Pneumothorax', 'Consolidation', 'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
 
-# Check if GPU is available on current platform
-use_gpu = torch.cuda.is_available()
-
-# save the output into a log file
-utils.set_logger(os.path.join(os.getcwd(),'train.log'))
-logging.info("Loading the datasets...")
 
 # a general model definition, scheduler: learning rate decay    
 def train(model, optimizer, scheduler, train_loader, loss_fn, metrics):
@@ -95,23 +89,23 @@ def train(model, optimizer, scheduler, train_loader, loss_fn, metrics):
             summary_batch['loss'] = loss.data[0]
             summ.append(summary_batch)
 
-            false_positive_batch, false_negative_batch = net.compare_pred_and_label(preds_batch, labels_batch)
-            false_positive += false_positive_batch
-            false_negative += false_negative_batch
+            #false_positive_batch, false_negative_batch = net.compare_pred_and_label(preds_batch, labels_batch)
+            #false_positive += false_positive_batch
+            #false_negative += false_negative_batch
            
             loss_avg.update(loss.data[0])
 
-            t.set_postfix(loss='{:05.3f}'.format(loss_avg()))
+            t.set_postfix(loss='{:05.6f}'.format(loss_avg()))
             t.update()
 
     # Here, when we update all the batch in a certain epoch, we will calculate
     # the mean metrics for this epoch, compute mean of all metrics in summary
     metrics_mean = {metric:np.mean([x[metric] for x in summ]) for metric in summ[0]}
-    metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in metrics_mean.items())
+    metrics_string = " ; ".join("{}: {:05.6f}".format(k, v) for k, v in metrics_mean.items())
     
-    logging.info("- Train metrics: %s", metrics_string)
-    logging.info("False positives of each disease: %s", np.array_str(false_positive))
-    logging.info("False negatives of each disease: %s", np.array_str(false_negative))
+    logger.info("- Train metrics: %s", metrics_string)
+    #logger.info("False positives of each disease: %s", np.array_str(false_positive))
+    #logger.info("False negatives of each disease: %s", np.array_str(false_negative))
 
 def train_and_evaluate(model, optimizer, scheduler, train_loader, dev_loader, loss_fn, metrics, num_epochs):
     since = time.time()
@@ -119,29 +113,41 @@ def train_and_evaluate(model, optimizer, scheduler, train_loader, dev_loader, lo
     best_loss = sys.float_info.max
 
     for epoch in range(num_epochs):
-        logging.info('Epoch {}/{}'.format(epoch, num_epochs - 1))
-        logging.info('-' * 10)
+        logger.info('Epoch {}/{}'.format(epoch, num_epochs - 1))
+        logger.info('-' * 10)
         train(model, optimizer, scheduler, train_loader, loss_fn, metrics)
-        logging.info("\n")
+        logger.info("\n")
 
         # evalute the model in the dev_dataset
-        logging.info("Metric Report for the dev set") 
-        dev_metrics, dev_loss = evaluate(model, dev_loader, metrics, loss_fn, use_gpu)
+        logger.info("Metric Report for the dev set") 
+        dev_metrics, dev_loss = evaluate(model, dev_loader, metrics, loss_fn,\
+                                         use_gpu, logger)
         scheduler.step(dev_loss)
 
         # find the best model based on the dev loss
         if dev_loss < best_loss:
-            logging.info("Found better model!")
+            logger.info("Found better model!")
             best_loss = dev_loss
             best_model_wts = copy.deepcopy(model.state_dict())
-        logging.info('\n')
-    # logging.info report
-    logging.info('Best eval loss: {:4f}'.format(best_loss))
+        logger.info('\n')
+    # logger.info report
+    logger.info('Best eval loss: {:4f}'.format(best_loss))
     time_elapsed = time.time() - since
-    logging.info('Training complete in {:.0f}m {:.0f}s'.format(
+    logger.info('Training complete in {:.0f}m {:.0f}s'.format(
            time_elapsed // 60, time_elapsed % 60))
     # load best model weights
     model.load_state_dict(best_model_wts)
+
+# construct options
+model_option = {"densenet" : net.DenseNet121(N_CLASSES) ,
+                "resnet" : net.ResNet18(N_CLASSES)}
+
+lr_option = {"1e-3" : 1e-3 , "5e-4" : 5e-4 ,"1e-4" : 1e-4 ,"5e-5" : 5e-5}
+
+loss_option = {"loss_1" : net.MultiLabelLoss() , "loss_2" : net.MultiLabelLoss2()}
+
+# Check if GPU is available on current platform
+use_gpu = torch.cuda.is_available()
 
 
 # Set the random seed for reproducible experiments
@@ -157,34 +163,41 @@ else:
 train_dl = dataloaders['train']
 dev_dl = dataloaders['dev']
 
-# initialize and load the model
-model = net.DenseNet121(N_CLASSES)
-if use_gpu:
-    model = net.DenseNet121(N_CLASSES).cuda()
-    model = torch.nn.DataParallel(model)
 
+for model_name , model in model_option.items():
+    for lr_name, lr_value in lr_option.items():
+        for loss_name, train_loss in loss_option.items():
+            # save the output into a log file
+            filename ="train_" + model_name + lr_name + loss_name 
+            utils.set_logger(filename ,os.path.join(os.getcwd(),"logFiles/" + filename + ".log"))
+            logger = logging.getLogger(filename)
+            logger.info("Loading the datasets...")
+            if use_gpu:
+                model = model.cuda()
+                model = torch.nn.DataParallel(model)
 
-#weights_file = os.path.join('/home/ubuntu/Data_Processed/labels/','train_list.txt')
-#train_weight = torch.from_numpy(utils.get_loss_weights(weights_file)).float()
-#logging.info(train_weight)
-#if use_gpu:
-#   train_weight = train_weight.cuda()
+            #weights_file = os.path.join('/home/ubuntu/Data_Processed/labels/','train_list.txt')
+            #train_weight = torch.from_numpy(utils.get_loss_weights(weights_file)).float()
+            #logger.info(train_weight)
+            #if use_gpu:
+            #   train_weight = train_weight.cuda()
 
-#train_loss = nn.MultiLabelSoftMarginLoss(weight = train_weight) 
-train_loss = net.MultiLabelLoss2()
-optimizer = optim.Adam(model.parameters(), lr=0.0001, weight_decay=5e-5)
+            #train_loss = nn.MultiLabelSoftMarginLoss(weight = train_weight) 
+            #train_loss = net.MultiLabelLoss2()
+            optimizer = optim.Adam(model.parameters(), lr=lr_value, weight_decay=5e-5)
 
-# Define the metrics
-metrics = net.metrics
-# Decay LR by a factor of 0.1 every 7 epochs
-# exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
-plat_lr_scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience = 1, verbose=True, threshold=0.01)
+            # Define the metrics
+            metrics = net.metrics
+            # Decay LR by a factor of 0.1 every 7 epochs
+            # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
+            plat_lr_scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience = 1, verbose=True, threshold=0.01)
 
-# Train the model in the training set
-logging.info("Names of 14 diseases:")
-#[logging.info('Type={}'.format(i),'Disease={}'.format(name)) for i, name in enumerate(CLASS_NAMES)]
-train_and_evaluate(model, optimizer, plat_lr_scheduler, train_dl, dev_dl, train_loss, metrics,num_epochs = 10)
-utils.save_checkpoint({'state_dict': model.state_dict()}, is_best=None, checkpoint='trial1')
-#utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
+            # Train the model in the training set
+            logger.info("Names of 14 diseases:")
+            #[logger.info('Type={}'.format(i),'Disease={}'.format(name)) for i, name in enumerate(CLASS_NAMES)]
+            train_and_evaluate(model, optimizer, plat_lr_scheduler, train_dl, dev_dl, train_loss, metrics,num_epochs = 1)
+            utils.save_checkpoint({'state_dict': model.state_dict()}, is_best=None, \
+                                  checkpoint= "./checkPoint/" + filename)
+            #utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
 
 

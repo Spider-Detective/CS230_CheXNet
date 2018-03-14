@@ -26,7 +26,7 @@ parser.add_argument('--restore_file', default='best', help="name of the file in 
                      containing weights to load")
 '''
 N_CLASSES = 15
-def evaluate(model, dataloader, metrics, loss_fn, use_gpu):
+def evaluate(model, dataloader, metrics, loss_fn, use_gpu, logger):
     """Evaluate the model on `num_steps` batches.
 
     Args:
@@ -100,18 +100,16 @@ def evaluate(model, dataloader, metrics, loss_fn, use_gpu):
 
     # compute mean of all metrics in summary
     metrics_mean = {metric:np.mean([x[metric] for x in summ]) for metric in summ[0]} 
-    metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in metrics_mean.items())
-    logging.info("- Eval metrics : " + metrics_string)
+    metrics_string = " ; ".join("{}: {:05.6f}".format(k, v) for k, v in metrics_mean.items())
+    logger.info("- Eval metrics : " + metrics_string)
 
     auc = net.computeROC_AUC(preds, labels) 
-    logging.info("ROC AUC is :")
-    logging.info(auc)
-    logging.info("average ROC_AUC scores :")
-    logging.info(np.mean(auc))
+    logger.info("ROC AUC is :")
+    logger.info(auc)
+    logger.info("average ROC_AUC scores :")
+    logger.info(np.mean(auc))
     metrics_mean['auc_mean'] = np.mean(auc)
 
-    logging.info("evaluation end! dev loss is:")
-    logging.info(loss_avg()) 
     return metrics_mean, loss_avg()
 
 
@@ -136,7 +134,7 @@ if __name__ == '__main__':
     #utils.set_logger(os.path.join(args.model_dir, 'evaluate.log'))
 
     # Create the input data pipeline
-    logging.info("Creating the dataset...")
+    logger.info("Creating the dataset...")
     
     # check gpu
     use_gpu = torch.cuda.is_available()
@@ -149,7 +147,7 @@ if __name__ == '__main__':
     
     dev_dl = dataloaders['dev']
 
-    logging.info("- done.")
+    logger.info("- done.")
 
     # Define the model
     # model = net.Net(params).cuda() if params.cuda else net.Net(params)
@@ -163,7 +161,7 @@ if __name__ == '__main__':
 
     #utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
 
-    logging.info("Starting evaluation")
+    logger.info("Starting evaluation")
 
     # Reload weights from the saved file
     #utils.load_checkpoint(os.path.join(args.model_dir, args.restore_file + '.pth.tar'), model)
