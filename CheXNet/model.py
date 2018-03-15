@@ -163,9 +163,11 @@ dev_dl = dataloaders['dev']
 #   train_weight = train_weight.cuda()
 loss_option = {"loss1": net.MultiLabelLoss(), "loss2": net.MultiLabelLoss2()}
 lr_option = {"1e-3": 1e-3, "5e-4": 5e-4, "1e-4": 1e-4, "5e-5": 5e-5}
-
+decoder_option = {"lstm" : net.DecoderLSTM(embed_size, hidden_size, N_CLASSES, num_layers),
+                  "gru" : net.DecoderGRU(embed_size, hidden_size, N_CLASSES, num_layers)}
 for loss_name, train_loss in loss_option.items():
     for lr_name, lr_value in lr_option.items():
+        
     
         filename = "train_" + lr_name + loss_name
         # save the output into a log file
@@ -182,8 +184,7 @@ for loss_name, train_loss in loss_option.items():
         encoder = net.DenseNet121(embed_size)
 
         # change the name of RNN model here: GRU or LSTM
-        decoder = net.DecoderGRU(embed_size, hidden_size, N_CLASSES, num_layers)
-
+        # decoder = net.DecoderGRU(embed_size, hidden_size, N_CLASSES, num_layers)
         if use_gpu:
             encoder = encoder.cuda()
             encoder = torch.nn.DataParallel(encoder)
