@@ -15,6 +15,7 @@ from sklearn.metrics import f1_score
 
 # We can define our own custom model here and import into the our trainning
 # function
+use_gpu = torch.cuda.is_available()
 
 class DenseNet121(nn.Module):
     """Model modified.
@@ -64,8 +65,13 @@ class DecoderRNN(nn.Module):
         encoded = features.view(1, input_shape[0], input_shape[1])
 
         # Set initial states
-        h0 = Variable(torch.zeros(self.num_layers*2, encoded.size(0), self.hidden_size)) # 2 for bidirection 
-        c0 = Variable(torch.zeros(self.num_layers*2, encoded.size(0), self.hidden_size))
+        
+        if use_gpu:
+            h0 = Variable(torch.zeros(self.num_layers*2, encoded.size(0), self.hidden_size).cuda()) # 2 for bidirection 
+            c0 = Variable(torch.zeros(self.num_layers*2, encoded.size(0), self.hidden_size).cuda())
+        else:
+            h0 = Variable(torch.zeros(self.num_layers*2, encoded.size(0), self.hidden_size)) # 2 for bidirection 
+            c0 = Variable(torch.zeros(self.num_layers*2, encoded.size(0), self.hidden_size))
 
         hiddens, _ = self.lstm(encoded, (h0, c0)) # hiddens is of shape [1, batch_size, hidden_size * 2]
         outputs = self.linear(hiddens[0])         # outpus is of shape [batch_size, N_CLASSES]
