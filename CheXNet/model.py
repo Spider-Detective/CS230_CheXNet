@@ -166,53 +166,60 @@ dev_dl = dataloaders['dev']
 # todo: decide the input sizes
 embed_size = 50
 hidden_size = 100
-num_layers = 2
+#num_layers = 2
 encoder = net.DenseNet121(embed_size)
 
-loss_option = {"loss1": net.MultiLabelLoss(), "loss2": net.MultiLabelLoss2()}
-lr_option = {"1e-3": 1e-3, "5e-4": 5e-4, "1e-4": 1e-4, "5e-5": 5e-5}
-decoder_option = {"lstm" : net.DecoderLSTM(embed_size, hidden_size, N_CLASSES, num_layers),
-                  "gru" : net.DecoderGRU(embed_size, hidden_size, N_CLASSES, num_layers)}
+layer_option = {"3" : 3, "4" : 4}
+
+#loss_option = {"loss1": net.MultiLabelLoss(), "loss2": net.MultiLabelLoss2()}
+loss_option = {"loss1": net.MultiLabelLoss()}
+
+#lr_option = {"1e-3": 1e-3, "5e-4": 5e-4, "1e-4": 1e-4, "5e-5": 5e-5}
+lr_option = {"1e-4": 1e-4}
 
 for loss_name, train_loss in loss_option.items():
     for lr_name, lr_value in lr_option.items():
-        for decoder_name, decoder in decoder_option.items():
-            # start loop through all the cases
-            filename = "train_" + decoder_name + "_" + lr_name + "_" + loss_name
-            # save the output into a log file
-            utils.set_logger(filename, os.path.join(os.getcwd(), "logFiles/" + filename + ".log"))
-            logger = logging.getLogger(filename)
-            logger.info("Loading the datasets...")
+        for layer_name , num_layers in layer_option.items():
+            decoder_option = {"lstm" : net.DecoderLSTM(embed_size, hidden_size, N_CLASSES, num_layers),
+                  "gru" : net.DecoderGRU(embed_size, hidden_size, N_CLASSES, num_layers)}
+            for decoder_name, decoder in decoder_option.items():
+                # start loop through all the cases
+                filename = "train_" + decoder_name + "_" + lr_name + "_" + \
+                loss_name + "_" + layer_name
+                # save the output into a log file
+                utils.set_logger(filename, os.path.join(os.getcwd(), "logFiles/" + filename + ".log"))
+                logger = logging.getLogger(filename)
+                logger.info("Loading the datasets...")
 
 
 
-            # change the name of RNN model here: GRU or LSTM
-            # decoder = net.DecoderGRU(embed_size, hidden_size, N_CLASSES, num_layers)
-            if use_gpu:
-                encoder = encoder.cuda()
-                encoder = torch.nn.DataParallel(encoder)
+                # change the name of RNN model here: GRU or LSTM
+                # decoder = net.DecoderGRU(embed_size, hidden_size, N_CLASSES, num_layers)
+                if use_gpu:
+                    encoder = encoder.cuda()
+                    encoder = torch.nn.DataParallel(encoder)
 
-                decoder = decoder.cuda()
-                decoder = torch.nn.DataParallel(decoder)
+                    decoder = decoder.cuda()
+                    decoder = torch.nn.DataParallel(decoder)
 
-            #train_loss = nn.MultiLabelSoftMarginLoss(weight = train_weight) 
-            #train_loss = net.MultiLabelLoss()
-            params = list(decoder.parameters()) + list(encoder.parameters()) 
-            optimizer = optim.Adam(params, lr=lr_value, weight_decay=5e-5)
+                #train_loss = nn.MultiLabelSoftMarginLoss(weight = train_weight) 
+                #train_loss = net.MultiLabelLoss()
+                params = list(decoder.parameters()) + list(encoder.parameters()) 
+                optimizer = optim.Adam(params, lr=lr_value, weight_decay=5e-5)
 
-            # Define the metrics
-            metrics = net.metrics
-            # Decay LR by a factor of 0.1 every 7 epochs
-            # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
-            plat_lr_scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience = 1, threshold = 1e-2, verbose=True)
+                # Define the metrics
+                metrics = net.metrics
+                # Decay LR by a factor of 0.1 every 7 epochs
+                # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
+                plat_lr_scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience = 1, threshold = 1e-2, verbose=True)
 
-            # Train the model in the training set
-            logger.info("Names of 14 diseases:")
-            #[logging.info('Type={}'.format(i),'Disease={}'.format(name)) for i, name in enumerate(CLASS_NAMES)]
-            train_and_evaluate(encoder, decoder, optimizer, plat_lr_scheduler,
-                               train_dl, dev_dl, train_loss, metrics,
-                               num_epochs = 10)
-            utils.save_checkpoint({'encoder_state_dict': encoder.state_dict(), 'decoder_state_dict': decoder.state_dict()}, is_best=None, checkpoint='./checkPoint/' + filename)
-    #utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
+                # Train the model in the training set
+                logger.info("Names of 14 diseases:")
+                #[logging.info('Type={}'.format(i),'Disease={}'.format(name)) for i, name in enumerate(CLASS_NAMES)]
+                train_and_evaluate(encoder, decoder, optimizer, plat_lr_scheduler,
+                                   train_dl, dev_dl, train_loss, metrics,
+                                   num_epochs = 10)
+                utils.save_checkpoint({'encoder_state_dict': encoder.state_dict(), 'decoder_state_dict': decoder.state_dict()}, is_best=None, checkpoint='./checkPoint/' + filename)
+        #utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
 
 
