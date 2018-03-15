@@ -37,10 +37,10 @@ class DenseNet121(nn.Module):
         x = self.densenet121(x)
         return x 
 
-class DecoderRNN(nn.Module):
+class DecoderLSTM(nn.Module):
     def __init__(self, embed_size, hidden_size, class_num, num_layers):
         """Set the hyper-parameters and build the layers."""
-        super(DecoderRNN, self).__init__()
+        super(DecoderLSTM, self).__init__()
         self.hidden_size = hidden_size
         self.num_layers = num_layers
         #self.embed = nn.Embedding(vocab_size, embed_size)
@@ -74,6 +74,41 @@ class DecoderRNN(nn.Module):
             c0 = Variable(torch.zeros(self.num_layers*2, encoded.size(0), self.hidden_size))
 
         hiddens, _ = self.lstm(encoded, (h0, c0)) # hiddens is of shape [1, batch_size, hidden_size * 2]
+        outputs = self.linear(hiddens[0])         # outpus is of shape [batch_size, N_CLASSES]
+        outputs = self.sigmoid(outputs)
+        return outputs
+
+
+class DecoderGRU(nn.Module):
+    def __init__(self, embed_size, hidden_size, class_num, num_layers):
+        """Set the hyper-parameters and build the layers."""
+        super(DecoderGRU, self).__init__()
+        self.hidden_size = hidden_size
+        self.num_layers = num_layers
+        #self.embed = nn.Embedding(vocab_size, embed_size)
+        self.gru = nn.GRU(embed_size, hidden_size, num_layers, batch_first=True, bidirectional=True)
+        self.linear = nn.Linear(hidden_size * 2, class_num) # 2 for bidirectional
+        self.sigmoid = nn.Sigmoid()
+        #self.init_weights()
+    
+    def init_weights(self):
+        """Initialize weights."""
+    #    self.embed.weight.data.uniform_(-0.1, 0.1)
+        self.linear.weight.data.uniform_(-0.1, 0.1)
+        self.linear.bias.data.fill_(0)
+        
+    def forward(self, features):#, captions):#, lengths):
+        """Decode image feature vectors and generates captions."""
+        input_shape = list(features.size()) # size is batch * embed_size
+        encoded = features.view(1, input_shape[0], input_shape[1])
+
+        # Set initial states
+        if use_gpu:
+            h0 = Variable(torch.zeros(self.num_layers*2, encoded.size(0), self.hidden_size).cuda()) # 2 for bidirection 
+        else:
+            h0 = Variable(torch.zeros(self.num_layers*2, encoded.size(0), self.hidden_size)) # 2 for bidirection 
+
+        hiddens, _ = self.gru(encoded, h0) # hiddens is of shape [1, batch_size, hidden_size * 2]
         outputs = self.linear(hiddens[0])         # outpus is of shape [batch_size, N_CLASSES]
         outputs = self.sigmoid(outputs)
         return outputs

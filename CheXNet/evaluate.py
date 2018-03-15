@@ -149,7 +149,7 @@ if __name__ == '__main__':
 
     embed_size = 50
     hidden_size = 100
-    num_layers = 1
+    num_layers = 2
     encoder = net.DenseNet121(embed_size)
     decoder = net.DecoderRNN(embed_size, hidden_size, N_CLASSES, num_layers)
 

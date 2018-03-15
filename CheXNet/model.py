@@ -154,21 +154,7 @@ else:
 train_dl = dataloaders['train']
 dev_dl = dataloaders['dev']
 
-# initialize and load the model
 
-# todo: decide the input sizes
-embed_size = 50
-hidden_size = 100
-num_layers = 2
-encoder = net.DenseNet121(embed_size)
-decoder = net.DecoderRNN(embed_size, hidden_size, N_CLASSES, num_layers)
-
-if use_gpu:
-    encoder = encoder.cuda()
-    encoder = torch.nn.DataParallel(encoder)
-
-    decoder = decoder.cuda()
-    decoder = torch.nn.DataParallel(decoder)
 
 #weights_file = os.path.join('/home/ubuntu/Data_Processed/labels/','train_list.txt')
 #train_weight = torch.from_numpy(utils.get_loss_weights(weights_file)).float()
@@ -186,6 +172,24 @@ for loss_name, train_loss in loss_option.items():
         utils.set_logger(filename, os.path.join(os.getcwd(), "logFiles/" + filename + ".log"))
         logger = logging.getLogger(filename)
         logger.info("Loading the datasets...")
+
+
+        # initialize and load the model
+        # todo: decide the input sizes
+        embed_size = 50
+        hidden_size = 100
+        num_layers = 2
+        encoder = net.DenseNet121(embed_size)
+
+        # change the name of RNN model here: GRU or LSTM
+        decoder = net.DecoderGRU(embed_size, hidden_size, N_CLASSES, num_layers)
+
+        if use_gpu:
+            encoder = encoder.cuda()
+            encoder = torch.nn.DataParallel(encoder)
+
+            decoder = decoder.cuda()
+            decoder = torch.nn.DataParallel(decoder)
 
         #train_loss = nn.MultiLabelSoftMarginLoss(weight = train_weight) 
         #train_loss = net.MultiLabelLoss()
