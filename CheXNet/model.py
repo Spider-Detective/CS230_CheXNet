@@ -33,13 +33,6 @@ N_CLASSES = 14
 CLASS_NAMES = [ 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass', 'Nodule', 'Pneumonia',
                 'Pneumothorax', 'Consolidation', 'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
 
-# Check if GPU is available on current platform
-use_gpu = torch.cuda.is_available()
-
-# save the output into a log file
-utils.set_logger(os.path.join(os.getcwd(),'train.log'))
-logging.info("Loading the datasets...")
-
 # a general model definition, scheduler: learning rate decay    
 def train(encoder, decoder, optimizer, scheduler, train_loader, loss_fn, metrics):
 
@@ -152,6 +145,12 @@ def train_and_evaluate(encoder, decoder, optimizer, scheduler, train_loader, dev
     decoder.load_state_dict(best_decoder_model_wts)
 
 
+# Check if GPU is available on current platform
+use_gpu = torch.cuda.is_available()
+
+# save the output into a log file
+utils.set_logger(os.path.join(os.getcwd(),'train.log'))
+logging.info("Loading the datasets...")
 
 # Set the random seed for reproducible experiments
 torch.manual_seed(230)
@@ -187,23 +186,29 @@ if use_gpu:
 #logging.info(train_weight)
 #if use_gpu:
 #   train_weight = train_weight.cuda()
+loss_option = {"loss1": net.MultiLabelLoss(), "loss2": net.MultiLabelLoss2()}
+lr_option = {"1e-3": 1e-3, "5e-4": 5e-4, "1e-4": 1e-4, "5e-5": 5e-5}
 
-#train_loss = nn.MultiLabelSoftMarginLoss(weight = train_weight) 
-train_loss = net.MultiLabelLoss()
-params = list(decoder.parameters()) + list(encoder.parameters()) 
-optimizer = optim.Adam(params, lr=0.001, weight_decay=5e-5)
+for loss_fun in loss_option.items():
+    for lr_option in lr_option.items():
 
-# Define the metrics
-metrics = net.metrics
-# Decay LR by a factor of 0.1 every 7 epochs
-# exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
-plat_lr_scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience = 1, threshold = 1e-2, verbose=True)
 
-# Train the model in the training set
-logging.info("Names of 14 diseases:")
-#[logging.info('Type={}'.format(i),'Disease={}'.format(name)) for i, name in enumerate(CLASS_NAMES)]
-train_and_evaluate(encoder, decoder, optimizer, plat_lr_scheduler, train_dl, dev_dl, train_loss, metrics, num_epochs = 5)
-utils.save_checkpoint({'state_dict': encoder.state_dict()}, is_best=None, checkpoint='trial1')
+    #train_loss = nn.MultiLabelSoftMarginLoss(weight = train_weight) 
+    train_loss = net.MultiLabelLoss()
+    params = list(decoder.parameters()) + list(encoder.parameters()) 
+    optimizer = optim.Adam(params, lr=0.001, weight_decay=5e-5)
+
+    # Define the metrics
+    metrics = net.metrics
+    # Decay LR by a factor of 0.1 every 7 epochs
+    # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
+    plat_lr_scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience = 1, threshold = 1e-2, verbose=True)
+
+    # Train the model in the training set
+    logging.info("Names of 14 diseases:")
+    #[logging.info('Type={}'.format(i),'Disease={}'.format(name)) for i, name in enumerate(CLASS_NAMES)]
+    train_and_evaluate(encoder, decoder, optimizer, plat_lr_scheduler, train_dl, dev_dl, train_loss, metrics, num_epochs = 5)
+#utils.save_checkpoint({'state_dict': encoder.state_dict()}, is_best=None, checkpoint='trial1')
 #utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
 
 
