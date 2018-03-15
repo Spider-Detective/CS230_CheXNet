@@ -148,7 +148,7 @@ def computeROC_AUC(outputs, labels):
     
 # maintain all metrics required in this dictionary- these are used in the training and evaluation loops
 metrics = {
-    'accuracy': accuracy,
+    #'accuracy': accuracy,
     'total_accuracy': total_accuracy,
     #'ROC_AUC': ROC_AUC,
     # 'precision':precision,
@@ -156,6 +156,59 @@ metrics = {
     # 'f1':f1
 }
 
+class MultiLabelLoss2():
+    """Creates a criterion that optimizes a multi-label one-versus-all
+    loss based on max-entropy, between input `x` and target `y` of size `(N, C)`.
+    For each sample in the minibatch::
+
+       loss(x, y) = - sum_i (y[i] * log( 1 / (1 + exp(-x[i])) )
+                         + ( (1-y[i]) * log(exp(-x[i]) / (1 + exp(-x[i])) ) )
+
+    where `i == 0` to `x.nElement()-1`, `y[i]  in {0,1}`.
+
+    Args:
+        weight (Tensor, optional): a manual rescaling weight given to each
+           class. If given, it has to be a Tensor of size `C`. Otherwise, it is
+           treated as if having all ones.
+        size_average (bool, optional): By default, the losses are averaged over
+            observations for each minibatch. However, if the field :attr:`size_average`
+            is set to ``False``, the losses are instead summed for each minibatch.
+            Default: ``True``
+        reduce (bool, optional): By default, the losses are averaged or summed over
+            observations for each minibatch depending on :attr:`size_average`. When
+            :attr:`reduce` is ``False``, returns a loss per batch element instead and
+            ignores :attr:`size_average`. Default: ``True``
+
+    Shape:
+        - Input: :math:`(N, C)` where `N` is the batch size and `C` is the number of classes.
+        - Target: :math:`(N, C)`, same shape as the input.
+        - Output: scalar. If `reduce` is False, then `(N)`.
+    """
+
+    def compute(self, input, target):
+        classes = input.size()[1]
+        num_example = input.size()[0]
+        #loss = target[:,0] * F.binary_cross_entropy(input, target, weight=None, size_average=True)
+        #loss = loss + (1 - target[]) * ()
+        
+        use_gpu = torch.cuda.is_available()
+        # calculate the 14 disease cross_entropy
+        if use_gpu:
+            loss = Variable(torch.zeros(num_example,1).type(torch.cuda.FloatTensor), requires_grad = True)
+        else:        
+            loss = Variable(torch.zeros(num_example,1).type(torch.FloatTensor), requires_grad = True)
+        for i in range(1,classes):
+            loss = loss +  torch.mul(target[:,i],torch.log(input[:,i])) + \
+            torch.mul(1 - target[:,i],torch.log(1 - input[:,i]))
+
+        # consider the first label 
+        loss = target[:,0] * loss + (1 - target[:,0]) * torch.log(1 - input[:,0]) \
+                + target[:,0] * torch.log(input[:,0])
+        loss = - torch.sum(loss)
+        loss = loss / num_example
+        loss = loss / classes 
+
+        return loss
 
 
 class MultiLabelLoss():

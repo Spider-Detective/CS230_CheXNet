@@ -1,4 +1,3 @@
-# encoding: utf-8
 
 """
 The main CheXNet model implementation.
@@ -29,8 +28,8 @@ import modelSetting.net as net
 from evaluate import evaluate
 
 
-N_CLASSES = 14
-CLASS_NAMES = [ 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass', 'Nodule', 'Pneumonia',
+N_CLASSES = 15
+CLASS_NAMES = [ 'no finding', 'Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass', 'Nodule', 'Pneumonia',
                 'Pneumothorax', 'Consolidation', 'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening', 'Hernia']
 
 # a general model definition, scheduler: learning rate decay    
@@ -92,10 +91,6 @@ def train(encoder, decoder, optimizer, scheduler, train_loader, loss_fn, metrics
             summary_batch = {metric:metrics[metric](preds_batch,labels_batch) for metric in metrics}
             summary_batch['loss'] = loss.data[0]
             summ.append(summary_batch)
-
-            false_positive_batch, false_negative_batch = net.compare_pred_and_label(preds_batch, labels_batch)
-            false_positive += false_positive_batch
-            false_negative += false_negative_batch
            
             loss_avg.update(loss.data[0])
 
@@ -105,11 +100,9 @@ def train(encoder, decoder, optimizer, scheduler, train_loader, loss_fn, metrics
     # Here, when we update all the batch in a certain epoch, we will calculate
     # the mean metrics for this epoch, compute mean of all metrics in summary
     metrics_mean = {metric:np.mean([x[metric] for x in summ]) for metric in summ[0]}
-    metrics_string = " ; ".join("{}: {:05.5f}".format(k, v) for k, v in metrics_mean.items())
+    metrics_string = " ; ".join("{}: {:05.6f}".format(k, v) for k, v in metrics_mean.items())
     
-    logging.info("- Train metrics: %s", metrics_string)
-    logging.info("False positives of each disease: %s", np.array_str(false_positive))
-    logging.info("False negatives of each disease: %s", np.array_str(false_negative))
+    logger.info("- Train metrics: %s", metrics_string)
 
 def train_and_evaluate(encoder, decoder, optimizer, scheduler, train_loader, dev_loader, loss_fn, metrics, num_epochs):
     since = time.time()
@@ -118,27 +111,27 @@ def train_and_evaluate(encoder, decoder, optimizer, scheduler, train_loader, dev
     best_loss = sys.float_info.max
 
     for epoch in range(num_epochs):
-        logging.info('Epoch {}/{}'.format(epoch, num_epochs - 1))
-        logging.info('-' * 10)
+        logger.info('Epoch {}/{}'.format(epoch, num_epochs - 1))
+        logger.info('-' * 10)
         train(encoder, decoder, optimizer, scheduler, train_loader, loss_fn, metrics)
-        logging.info("\n")
+        logger.info("\n")
 
         # evalute the model in the dev_dataset
-        logging.info("Metric Report for the dev set") 
-        dev_metrics, dev_loss = evaluate(encoder, decoder, dev_loader, metrics, loss_fn, use_gpu)
+        logger.info("Metric Report for the dev set") 
+        dev_metrics, dev_loss = evaluate(encoder, decoder, dev_loader, metrics, loss_fn, use_gpu, logger)
         scheduler.step(dev_loss)
 
         # find the best model based on the dev loss
         if dev_loss < best_loss:
-            logging.info("Found better model!")
+            logger.info("Found better model!")
             best_loss = dev_loss
             best_encoder_wts = copy.deepcopy(encoder.state_dict())
             best_decoder_wts = copy.deepcopy(decoder.state_dict())
-        logging.info('\n')
+        logger.info('\n')
     # logging.info report
-    logging.info('Best eval loss: {:4f}'.format(best_loss))
+    logger.info('Best eval loss: {:4f}'.format(best_loss))
     time_elapsed = time.time() - since
-    logging.info('Training complete in {:.0f}m {:.0f}s'.format(
+    logger.info('Training complete in {:.0f}m {:.0f}s'.format(
            time_elapsed // 60, time_elapsed % 60))
     # load best model weights
     encoder.load_state_dict(best_encoder_model_wts)
@@ -147,10 +140,6 @@ def train_and_evaluate(encoder, decoder, optimizer, scheduler, train_loader, dev
 
 # Check if GPU is available on current platform
 use_gpu = torch.cuda.is_available()
-
-# save the output into a log file
-utils.set_logger(os.path.join(os.getcwd(),'train.log'))
-logging.info("Loading the datasets...")
 
 # Set the random seed for reproducible experiments
 torch.manual_seed(230)
@@ -189,26 +178,31 @@ if use_gpu:
 loss_option = {"loss1": net.MultiLabelLoss(), "loss2": net.MultiLabelLoss2()}
 lr_option = {"1e-3": 1e-3, "5e-4": 5e-4, "1e-4": 1e-4, "5e-5": 5e-5}
 
-for loss_fun in loss_option.items():
-    for lr_option in lr_option.items():
+for loss_name, train_loss in loss_option.items():
+    for lr_name, lr_value in lr_option.items():
+    
+        filename = "train_" + lr_name + loss_name
+        # save the output into a log file
+        utils.set_logger(filename, os.path.join(os.getcwd(), "logFiles/" + filename + ".log"))
+        logger = logging.getLogger(filename)
+        logger.info("Loading the datasets...")
 
+        #train_loss = nn.MultiLabelSoftMarginLoss(weight = train_weight) 
+        #train_loss = net.MultiLabelLoss()
+        params = list(decoder.parameters()) + list(encoder.parameters()) 
+        optimizer = optim.Adam(params, lr=lr_value, weight_decay=5e-5)
 
-    #train_loss = nn.MultiLabelSoftMarginLoss(weight = train_weight) 
-    train_loss = net.MultiLabelLoss()
-    params = list(decoder.parameters()) + list(encoder.parameters()) 
-    optimizer = optim.Adam(params, lr=0.001, weight_decay=5e-5)
+        # Define the metrics
+        metrics = net.metrics
+        # Decay LR by a factor of 0.1 every 7 epochs
+        # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
+        plat_lr_scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience = 1, threshold = 1e-2, verbose=True)
 
-    # Define the metrics
-    metrics = net.metrics
-    # Decay LR by a factor of 0.1 every 7 epochs
-    # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
-    plat_lr_scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, patience = 1, threshold = 1e-2, verbose=True)
-
-    # Train the model in the training set
-    logging.info("Names of 14 diseases:")
-    #[logging.info('Type={}'.format(i),'Disease={}'.format(name)) for i, name in enumerate(CLASS_NAMES)]
-    train_and_evaluate(encoder, decoder, optimizer, plat_lr_scheduler, train_dl, dev_dl, train_loss, metrics, num_epochs = 5)
-#utils.save_checkpoint({'state_dict': encoder.state_dict()}, is_best=None, checkpoint='trial1')
+        # Train the model in the training set
+        logger.info("Names of 14 diseases:")
+        #[logging.info('Type={}'.format(i),'Disease={}'.format(name)) for i, name in enumerate(CLASS_NAMES)]
+        train_and_evaluate(encoder, decoder, optimizer, plat_lr_scheduler, train_dl, dev_dl, train_loss, metrics, num_epochs = 5)
+        utils.save_checkpoint({'encoder_state_dict': encoder.state_dict(), 'decoder_state_dict': decoder.state_dict()}, is_best=None, checkpoint='./checkPoint/' + filename)
 #utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
 
 

@@ -25,8 +25,8 @@ parser.add_argument('--model_dir', default='experiments/base_model', help="Direc
 parser.add_argument('--restore_file', default='best', help="name of the file in --model_dir \
                      containing weights to load")
 '''
-N_CLASSES = 14
-def evaluate(encoder, decoder, dataloader, metrics, loss_fn, use_gpu):
+N_CLASSES = 15
+def evaluate(encoder, decoder, dataloader, metrics, loss_fn, use_gpu, logger):
     """Evaluate the model on `num_steps` batches.
 
     Args:
@@ -71,8 +71,8 @@ def evaluate(encoder, decoder, dataloader, metrics, loss_fn, use_gpu):
             
             # reshape into 1D numpy array and output for all batches
             # extract data from torch Variable, move to cpu, convert to numpy arrays
-            outputs = outputs.data.cpu().numpy().reshape((1,14))
-            labels = labels.data.cpu().numpy().reshape((1,14))
+            outputs = outputs.data.cpu().numpy().reshape((1,N_CLASSES))
+            labels = labels.data.cpu().numpy().reshape((1,N_CLASSES))
             
             # save for auc calculation
             if (len(outputs_batch) == 0):  # first output and label
@@ -92,16 +92,16 @@ def evaluate(encoder, decoder, dataloader, metrics, loss_fn, use_gpu):
 
     # compute mean of all metrics in summary
     metrics_mean = {metric:np.mean([x[metric] for x in summ]) for metric in summ[0]} 
-    metrics_string = " ; ".join("{}: {:05.5f}".format(k, v) for k, v in metrics_mean.items())
-    logging.info("- Eval metrics : " + metrics_string)
+    metrics_string = " ; ".join("{}: {:05.6f}".format(k, v) for k, v in metrics_mean.items())
+    logger.info("- Eval metrics : " + metrics_string)
 
     auc = net.computeROC_AUC(outputs_batch, labels_batch) 
-    logging.info("ROC AUC is :")
-    logging.info(auc)
+    logger.info("ROC AUC is :")
+    logger.info(auc)
 
     metrics_mean['auc_mean'] = np.mean(auc)
-    logging.info("Mean value of AUC: ")
-    logging.info(metrics_mean['auc_mean'])
+    logger.info("Mean value of AUC: ")
+    logger.info(metrics_mean['auc_mean'])
     
     return metrics_mean, loss_avg()
 
@@ -127,7 +127,7 @@ if __name__ == '__main__':
     #utils.set_logger(os.path.join(args.model_dir, 'evaluate.log'))
 
     # Create the input data pipeline
-    logging.info("Creating the dataset...")
+    logger.info("Creating the dataset...")
     
     # check gpu
     use_gpu = torch.cuda.is_available()
@@ -140,7 +140,7 @@ if __name__ == '__main__':
     
     dev_dl = dataloaders['dev']
 
-    logging.info("- done.")
+    logger.info("- done.")
 
     # Define the model
     # model = net.Net(params).cuda() if params.cuda else net.Net(params)
@@ -162,7 +162,7 @@ if __name__ == '__main__':
 
     #utils.load_checkpoint(checkpoint = 'trial1/last.pth.tar', model = dev_model)
 
-    logging.info("Starting evaluation")
+    logger.info("Starting evaluation")
 
     # Reload weights from the saved file
     #utils.load_checkpoint(os.path.join(args.model_dir, args.restore_file + '.pth.tar'), model)
