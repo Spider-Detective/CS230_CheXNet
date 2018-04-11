@@ -1,5 +1,6 @@
 # CS230_CheXNet
-Test: From Yue on Github Desk
+Stanford 2017-18 Winter Course CS230 Final Team Project 
 
+# Diagnosing Chest X-ray Diseases with Deep Learning
 
 Data for running DenseNet121.py is here: http://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html#sphx-glr-beginner-transfer-learning-tutorial-py
